@@ -21,7 +21,7 @@ export default {
       const res = yield call(
         api.fetch,
         "delete",
-        "follow/cancelFollow",
+        "/follow/cancelFollow",
         payload
       );
       if (res.code === 0) {

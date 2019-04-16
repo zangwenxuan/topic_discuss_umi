@@ -395,7 +395,7 @@ export default class ContentImgs extends Component {
   );
   imageList = list => {
     const imageList = list;
-    /*const imageList = api.getImg(list);*/
+    /*const imageList = request.getImg(list);*/
     switch (imageList.length) {
       case 0:
         return this.image_0();

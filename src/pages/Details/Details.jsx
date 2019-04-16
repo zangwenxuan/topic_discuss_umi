@@ -51,7 +51,7 @@ class Details extends Component {
     }
     const { match, getContentDetails } = this.props;
     const { params } = match;
-    if(params.feedId && params.feedId !== this.state.feedId) {
+    if (params.feedId && params.feedId !== this.state.feedId) {
       getContentDetails(params.feedId);
       this.setState({
         feedId: params.feedId
@@ -61,12 +61,12 @@ class Details extends Component {
   componentWillUnmount() {
     const { freshByFeedId } = this.props;
     const { isKeep, isLiked, feedId } = this.state;
-      const payload = {
-        isLiked,
-        isKeep,
-        feedId
-      };
-      freshByFeedId(payload);
+    const payload = {
+      isLiked,
+      isKeep,
+      feedId
+    };
+    freshByFeedId(payload);
   }
 
   state = {
@@ -198,7 +198,6 @@ class Details extends Component {
       postCommentReply,
       dataSource: commentUserList
     };
-    console.log(details);
     return (
       <div>
         <Card
@@ -225,7 +224,7 @@ class Details extends Component {
             avatar={
               <Avatar
                 src={
-                  contentDetails.avatar == ""
+                  contentDetails.avatar == null
                     ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
                     : `http://localhost:8080/pic/${contentDetails.avatar}`
                 }
@@ -234,7 +233,9 @@ class Details extends Component {
             title={contentDetails.nickname}
             description={this.showTags(themeList)}
           />
-          <font size="4" color="black" style={{marginLeft:"45px"}}>{contentDetails.content}</font>
+          <font size="4" color="black" style={{ marginLeft: "45px" }}>
+            {contentDetails.content}
+          </font>
           <Zmage imageUrls={picList} />
         </Card>
         {visible ? (

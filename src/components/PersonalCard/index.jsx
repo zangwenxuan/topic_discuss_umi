@@ -7,20 +7,18 @@ const { Meta } = Card;
 
 const personalCard = ({
   authorId,
+  uid,
   avatar,
   nickname,
-  queryUser,
-  followUser,
   followerNum,
   feedNum,
   cardLoading,
   isFollowed,
   newFollow,
-  cancelFollow,
-  freshChatNotice
+  cancelFollow
 }) => {
   const buttonTrue = (
-    <Button type="primary" onClick={newFollow.bind(this, { master: authorId })}>
+    <Button type="primary" onClick={newFollow.bind(this, { master: uid||authorId })}>
       关注
     </Button>
   );
@@ -28,7 +26,7 @@ const personalCard = ({
     <Button
       ghost
       type="primary"
-      onClick={cancelFollow.bind(this, { master: authorId })}
+      onClick={cancelFollow.bind(this, { master: uid||authorId })}
     >
       取消关注
     </Button>
@@ -39,7 +37,7 @@ const personalCard = ({
         bordered={false}
         actions={[
           isFollowed ? buttonFalse : buttonTrue,
-          <Link to={`/chatRom/${authorId}`} onClick={freshChatNotice}>
+          <Link to={`/chatRom/${uid||authorId}`} >
             <Button>私信</Button>
           </Link>
         ]}
@@ -47,9 +45,9 @@ const personalCard = ({
         <Meta
           avatar={
             <Avatar
-              size="large"
+              size={100}
               src={
-                avatar == ""
+                avatar == null
                   ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
                   : `http://localhost:8080/pic/${avatar}`
               }

@@ -31,8 +31,8 @@ export default {
           component: "ChatRom/chatRom",
           authority: "user"
         },
-        { path: "/content", component: "content" },
-        { path: "/content/:themeName", component: "content" },
+        { path: "/content", component: "./Content/content" },
+        { path: "/content/:themeName", component: "./Content/content" },
         { path: "/details/:feedId", component: "details" }
       ]
     }

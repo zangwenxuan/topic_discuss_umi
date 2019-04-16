@@ -1,5 +1,4 @@
 .main{
-  width:400px;
   margin:0 auto;
 }
 .submit{
@@ -8,3 +7,14 @@
 .login{
   float:right;
 }
+.form{
+  width: 500px;
+  margin:0 auto;
+  :global {
+    .ant-form-item-label > label::after {
+      content: ''
+    }
+  }
+}
+
+

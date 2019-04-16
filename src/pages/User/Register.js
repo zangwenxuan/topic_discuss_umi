@@ -1,19 +1,12 @@
 import React, { Component } from "react";
-import {
-  Form,
-  Button,
-  Input,
-  Icon,
-  Checkbox,
-  message,
-  Alert,
-  Row,
-  Col
-} from "antd";
+import { Form, Button, Input, Icon, Row, Col, Alert } from "antd";
 import Link from "umi/link";
 import styles from "./Register.less";
 import { connect } from "dva";
 
+@connect(({ user }) => ({
+  user
+}))
 class Register extends Component {
   state = {
     count: 0,
@@ -22,20 +15,86 @@ class Register extends Component {
     help: "",
     prefix: "86"
   };
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const form = this.props.form;
+    if (prevProps.user.nameAvailable !== this.props.user.nameAvailable) {
+      form.validateFields(["nickname"], { force: true });
+    }
+    if (prevProps.user.emailAvailable !== this.props.user.emailAvailable) {
+      form.validateFields(["email"], { force: true });
+    }
+  }
+
+  handleAlertClose = () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "user/changeCaptcha"
+    });
+  };
+
+  validateName = (rule, value, callBack) => {
+    const {
+      dispatch,
+      user: { nameAvailable }
+    } = this.props;
+    const regex = /^.{1,15}$/;
+    if (value && !regex.test(value)) {
+      callBack("昵称长度为1-15");
+    } else if (value && regex.test(value)) {
+      dispatch({
+        type: "user/checkName",
+        payload: value
+      });
+      if (nameAvailable === "error") {
+        callBack("用户名已被注册!");
+      }
+    }
+    callBack();
+  };
+
   handleSubmit = e => {
     e.preventDefault();
-    const { checkUser } = this.props;
+    const { dispatch } = this.props;
     this.props.form.validateFields((err, values) => {
+      console.log(err);
       if (!err) {
-        const user = { uid: values.userName, password: values.password };
-        checkUser(user);
+        const { confirm, captcha, ...user } = values;
+        this.handleAlertClose();
+        dispatch({
+          type: "user/register",
+          payload: { captcha, user }
+        });
       }
     });
   };
+
   handleConfirmBlur = e => {
     const value = e.target.value;
     this.setState({ confirmDirty: this.state.confirmDirty || !!value });
   };
+
+  validateEmail = (rule, value, callback) => {
+    const {
+      dispatch,
+      user: { emailAvailable }
+    } = this.props;
+    const regex = /^[A-Za-z\d]+([-_.][A-Za-z\d]+)*@([A-Za-z\d]+[-.])+[A-Za-z\d]{2,4}$/;
+    if (value && !regex.test(value)) {
+      callback("邮箱地址格式错误！");
+    }
+    if (emailAvailable === "error") {
+      callback("该邮箱地址已被注册！");
+    }
+    if (value && regex.test(value)) {
+      dispatch({
+        type: "user/checkEmail",
+        payload: value
+      });
+    }
+    callback();
+  };
+
   compareToFirstPassword = (rule, value, callback) => {
     const form = this.props.form;
     if (value && value !== form.getFieldValue("password")) {
@@ -44,18 +103,24 @@ class Register extends Component {
       callback();
     }
   };
+
   validateToNextPassword = (rule, value, callback) => {
     const form = this.props.form;
     if (value && this.state.confirmDirty) {
       form.validateFields(["confirm"], { force: true });
     }
-    const regex = /^.*(?=.{6,15})(?=.*\d)(?=.*[a-z]{1,}).*$/;
+    const regex = /^(?![0-9!@#$%^&*.]+$)(?![a-zA-Z!@#$%^&*.]+$)[a-zA-Z\d!@#$%^&*.]{8,16}$/;
     if (value && !regex.test(value)) {
-      callback("密码长度为8-15，且必须包含大小写字母,数字以及特殊字符");
+      callback(
+        "密码长度为8-16，且必须包含字母和数字（其余可包含的特殊字符有 !@#$%^&*.）"
+      );
     }
     callback();
   };
   onGetCaptcha = () => {
+    const { dispatch } = this.props;
+    const email = this.props.form.getFieldValue("email");
+    dispatch({ type: "user/getCaptcha", payload: email });
     let count = 59;
     this.setState({ count });
     this.interval = setInterval(() => {
@@ -67,28 +132,37 @@ class Register extends Component {
     }, 1000);
   };
 
-  renderMessage = () => (
-    <Alert
-      style={{ marginBottom: 24 }}
-      message="用户名或密码错误，请重新输入"
-      type="error"
-      showIcon
-    />
-  );
   render() {
     const { count } = this.state;
     const { getFieldDecorator } = this.props.form;
+    const {
+      user: { captchaAvailable }
+    } = this.props;
     const form = (
-      <Form onSubmit={this.handleSubmit} className="login-form">
-        {}
+      <Form
+        hideRequiredMark
+        onSubmit={this.handleSubmit}
+        className={styles.form}
+      >
         <Form.Item>
           {getFieldDecorator("nickname", {
-            rules: [{ required: true, message: "请输入昵称!" }]
+            rules: [
+              { required: true, message: "请输入昵称!" },
+              { validator: this.validateName }
+            ]
           })(<Input size="large" placeholder="昵称" />)}
         </Form.Item>
         <Form.Item>
           {getFieldDecorator("email", {
-            rules: [{ required: true, message: "请输入邮箱!" }]
+            rules: [
+              {
+                required: true,
+                message: "请输入邮箱!"
+              },
+              {
+                validator: this.validateEmail
+              }
+            ]
           })(<Input size="large" placeholder="邮箱" />)}
         </Form.Item>
         <Form.Item>
@@ -133,9 +207,9 @@ class Register extends Component {
           )}
         </Form.Item>
         <Row gutter={8}>
-          <Col span={16}>
+          <Col span={18}>
             <Form.Item>
-              {getFieldDecorator("Captcha", {
+              {getFieldDecorator("captcha", {
                 rules: [
                   {
                     required: true,
@@ -145,7 +219,7 @@ class Register extends Component {
               })(<Input size="large" placeholder="输入验证码" />)}
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Button
               disabled={count}
               onClick={this.onGetCaptcha}
@@ -156,7 +230,15 @@ class Register extends Component {
             </Button>
           </Col>
         </Row>
-        <Form.Item>
+        {captchaAvailable === "error" && (
+          <Alert
+            type={"error"}
+            onClose={this.handleAlertClose}
+            closable
+            message={"验证码错误！"}
+          />
+        )}
+        <Form.Item label={" "}>
           <Button
             size="large"
             type="primary"

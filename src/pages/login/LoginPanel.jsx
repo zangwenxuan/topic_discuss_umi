@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Form, Button, Input, Icon, Checkbox,message,Alert} from "antd";
+import { Form, Button, Input, Icon, Checkbox,message,Alert,Carousel} from "antd";
 import { withRouter } from "react-router";
 import Link from "umi/link"
 import styles from "./Login.less";
@@ -30,32 +30,28 @@ class LoginPanel extends Component {
       }
         <Form.Item>
           {getFieldDecorator("userName", {
-            rules: [{ required: true, message: "Please input your username!" }]
+            rules: [{ required: true, message: "请输入用户名或邮箱地址！" }]
           })(
             <Input
               size='large'
               prefix={<Icon type="user" style={{ color: "rgba(0,0,0,.25)" }} />}
-              placeholder="Username"
+              placeholder="用户名或邮箱地址"
             />
           )}
         </Form.Item>
         <Form.Item>
           {getFieldDecorator("password", {
-            rules: [{ required: true, message: "Please input your Password!" }]
+            rules: [{ required: true, message: "请输入密码！" }]
           })(
             <Input
               size='large'
               prefix={<Icon type="lock" style={{ color: "rgba(0,0,0,.25)" }} />}
               type="password"
-              placeholder="Password"
+              placeholder="密码"
             />
           )}
         </Form.Item>
         <Form.Item>
-          {/*{getFieldDecorator("remember", {
-            valuePropName: "checked",
-            initialValue: true
-          })(<Checkbox>Remember me</Checkbox>)}*/}
           <a>忘记密码</a>
           <Link to="/register" className={styles.login_forgot} >
             注册账号
@@ -74,7 +70,16 @@ class LoginPanel extends Component {
         </Form.Item>
       </Form>
     );
-    return <div className={styles.main}><div style={{height:"300px"}}></div>{form}</div>;
+    return  <div className={styles.main}>
+
+     {/*<Carousel className={styles.test} autoplay >
+        <div><img
+          alt=""
+          src="https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+        /></div>
+      </Carousel>*/}<div className={styles.aa}></div> {form}
+
+      </div>;
   }
 }
 const LoginForm = Form.create({ name: "normal_login" })(LoginPanel);

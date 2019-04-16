@@ -25,13 +25,12 @@ class MsgPopPage extends Component {
     user: undefined,
     ws: undefined
   };
-  componentWillMount() {
-
-  }
 
   componentWillUnmount() {
     const { ws } = this.state;
-    ws.close();
+    if(ws) {
+      ws.close();
+    }
   }
 
   componentDidMount = () => {
@@ -44,11 +43,10 @@ class MsgPopPage extends Component {
     });
     this.setState({
       guestId: params.uid,
-      user: JSON.parse(sessionStorage.getItem("user"))
+      user: JSON.parse(sessionStorage.getItem("user")),
     });
   };
-
-  componentDidUpdate = prevProps => {
+  componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.chatMsg.guest !== this.props.chatMsg.guest) {
       const { guest } = this.props.chatMsg;
       this.setState({
@@ -62,9 +60,25 @@ class MsgPopPage extends Component {
         msgList
       });
     }
-  };
+    const { guestId, ws } = this.state;
+    const { dispatch, match } = this.props;
+    const { params } = match;
+    if (guestId && guestId !== params.uid) {
+      if(ws) {
+        ws.close();
+      }
+      this.webSocket(params.uid)
+      this.setState({
+        guestId: params.uid,
+      });
+      dispatch({
+        type: "chatMsg/getAllMessage",
+        payload: params.uid
+      });
+    }
+  }
 
-  webSocket = id =>{
+  webSocket = id => {
     let { ws } = this.state;
     const user = JSON.parse(sessionStorage.getItem("user"));
     const wsUrl = `ws://localhost:8080/websocket/${user.uid}${id}`;
@@ -79,7 +93,6 @@ class MsgPopPage extends Component {
       ws.onmessage = msg => {
         console.log("接收服务端发过来的消息: %o", msg);
         let msgJson = JSON.parse(msg.data);
-        result += msgJson.MsgBody + "\n";
         if (msgJson.MsgCode == "999999") {
           //多设备在线的异常发生时;
           window.location.href = "/#/";
@@ -102,8 +115,7 @@ class MsgPopPage extends Component {
         console.log(e);
       };
     }
-    let result = "";
-  }
+  };
 
   handleChange = e => {
     this.setState({
@@ -137,6 +149,7 @@ class MsgPopPage extends Component {
       shouldScroll: false
     });
   };
+
   handleScroll = e => {
     const ele = rdom.findDOMNode(this);
     if (e.nativeEvent.deltaY <= 0) {
@@ -164,8 +177,9 @@ class MsgPopPage extends Component {
       msgList = {},
       user = {}
     } = this.state;
-    const { route:{routes}  } = this.props;
-    console.log(this.props.route)
+    const {
+      route: { routes }
+    } = this.props;
     const { avatar = {}, uid = {} } = user;
     const chatProps = {
       msgList: msgList,

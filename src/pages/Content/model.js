@@ -7,7 +7,7 @@ export default {
   effects: {
     *selectMyMaster(action, { call, put }) {
       const res = yield call(api.fetch, "get", "/user/selectMyMaster");
-      if (res.code == "0") {
+      if (res.code === 0) {
         yield put({
           type: "showContentList",
           payload: res.res
@@ -16,7 +16,7 @@ export default {
     },
     *selectMyFeed(action, { call, put }) {
       const res = yield call(api.fetch, "get", "/user/selectMyFeed");
-      if (res.code == "0") {
+      if (res.code === 0) {
         yield put({
           type: "showContentList",
           payload: res.res
@@ -25,7 +25,7 @@ export default {
     },
     *selectMyKeep(action, { call, put }) {
       const res = yield call(api.fetch, "get", "/user/selectMyKeep");
-      if (res.code == "0") {
+      if (res.code === 0) {
         yield put({
           type: "showContentList",
           payload: res.res
@@ -42,7 +42,7 @@ export default {
         "/content/sendFeed",
         payload
       );
-      if (res.code == "0") {
+      if (res.code === 0) {
         yield put({
           type: "getContentList"
         });
@@ -55,7 +55,7 @@ export default {
         url = `/user/selectContentByTheme?themeName=${payload}&uid=${user.uid}`;
       }
       const res = yield call(api.fetch, "get", url);
-      if (res.code == "0") {
+      if (res.code === 0) {
         yield put({
           type: "showContentList",
           payload: res.res
@@ -69,7 +69,7 @@ export default {
         url = `/user/selectAllContent?uid=${user.uid}`;
       }
       const res = yield call(api.fetch, "get", url);
-      if (res.code == "0") {
+      if (res.code === 0) {
         yield put({
           type: "showContentList",
           payload: res.res

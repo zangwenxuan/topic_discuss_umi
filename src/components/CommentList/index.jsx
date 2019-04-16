@@ -65,7 +65,7 @@ export default class CommentList extends Component {
           </span>
         ]}
         avatar={
-          <Avatar src={record.avatar==""?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${record.avatar}` }/>
+          <Avatar src={record.avatar==null?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${record.avatar}` }/>
         }
         author={<a href="https://ant.design">{record.nickname}</a>}
         content={record.comCon}
@@ -92,7 +92,7 @@ export default class CommentList extends Component {
               </span>
             ]}
             avatar={
-              <Avatar src={item.avatar==""?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${item.avatar}` }/>
+              <Avatar src={item.avatar==null?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${item.avatar}` }/>
             }
             author={<a href="https://ant.design">{item.fromUserNickname}</a>}
             content={

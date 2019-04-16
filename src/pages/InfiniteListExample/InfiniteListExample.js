@@ -7,7 +7,7 @@ import styles from "./index.less"
 import InfiniteScroll from "react-infinite-scroller";
 
 const fakeDataUrl =
-  "https://randomuser.me/api/?results=5&inc=name,gender,email,nat&noinfo";
+  "https://randomuser.me/request/?results=5&inc=name,gender,email,nat&noinfo";
 
 const rdom = require('react-dom');
 export default class InfiniteListExample extends React.Component {

@@ -42,7 +42,6 @@ export default class NoticeIcon extends PureComponent {
     const { handleChatClick } = this.props;
     const { clickClose } = item;
     if (item.type === 10) {
-      console.log("********************");
       handleChatClick(item.uid);
     }
     /*onItemClick(item, tabProps);
@@ -65,9 +64,9 @@ export default class NoticeIcon extends PureComponent {
     onTabChange(tabType);
   };
 
-  onViewMore = (tabProps, event) => {
+  onViewMore = (item) => {
     const { onViewMore } = this.props;
-    onViewMore(tabProps, event);
+    onViewMore(item);
   };
 
   getNotificationBox() {
@@ -106,7 +105,7 @@ export default class NoticeIcon extends PureComponent {
             onClear={() => this.onClear(title)}
             onClick={item => this.onItemClick(item, child.props)}
             onItemClick={this.hiddenMenu}
-            onViewMore={event => this.onViewMore(child.props, event)}
+            onViewMore={item => this.onViewMore(item)}
             showClear={showClear}
             showViewMore={showViewMore}
             title={title}

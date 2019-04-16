@@ -10,9 +10,9 @@ import Search from "../components/HeaderSrarch";
 
 const { Header } = Layout;
 
-@connect(({ user,loading }) => ({
+@connect(({ user, loading }) => ({
   user,
-  chatNoticeClear:loading.effects["user/clearReadStatus"]
+  chatNoticeClear: loading.effects["user/clearReadStatus"]
 }))
 class HeaderPanel extends Component {
   state = {
@@ -148,10 +148,12 @@ class HeaderPanel extends Component {
     });
   };
 
-  handleCloseClick = () => {
-    this.setState({
-      itemClick: false
-    });
+  handleCloseClick = (uid) => {
+    const {dispatch} = this.props
+    dispatch({
+      type: "user/deleteChatNote",
+      payload:{uid}
+    })
   };
 
   handleTabChange = key => {
@@ -169,15 +171,15 @@ class HeaderPanel extends Component {
   };
 
   onNoticeClear = type => {
-    const { dispatch,chatNoticeClear } = this.props;
-    const {loading} = this.state
-    if(type === "私信"){
+    const { dispatch, chatNoticeClear } = this.props;
+    const { loading } = this.state;
+    if (type === "私信") {
       this.setState({
-        loading:chatNoticeClear
-      })
+        loading: chatNoticeClear
+      });
       dispatch({
         type: "user/clearReadStatus"
-      })
+      });
     }
 
     /*dispatch({
@@ -185,6 +187,15 @@ class HeaderPanel extends Component {
       payload: type,
     });*/
   };
+
+  onNoticeViewMore = type => {
+    const { dispatch } = this.props;
+    if(type === "私信"){
+      dispatch({
+        type: "user/clearChatNotes"
+      })
+    }
+  }
 
   render() {
     const {
@@ -250,9 +261,17 @@ class HeaderPanel extends Component {
         <div className={styles.main}>
           <Link to="/">
             <span className={`${styles.action} ${styles.account}`}>
-              <Icon type="home" style={{ fontSize: "24px", color: "#08c" ,marginLeft:"10px"}} />
+              <Icon
+                type="home"
+                style={{ fontSize: "24px", color: "#08c", marginLeft: "10px" }}
+              />
             </span>
-            <span className={`${styles.action} ${styles.account}`} style={{marginLeft:"30px"}}>推荐</span>
+            <span
+              className={`${styles.action} ${styles.account}`}
+              style={{ marginLeft: "30px" }}
+            >
+              推荐
+            </span>
           </Link>
           <div className={styles.right}>
             <span size="small" style={{ marginRight: "5px" }}>
@@ -274,6 +293,7 @@ class HeaderPanel extends Component {
                 this.countUnreadChat(chatNotice)
               }
               onClear={this.onNoticeClear}
+              onViewMore={this.onNoticeViewMore}
               handleChatClick={this.handleChatClick}
               onItemClick={(item, tabProps) => {
                 console.log(item, tabProps); // eslint-disable-line
@@ -317,7 +337,7 @@ class HeaderPanel extends Component {
                   className={styles.avatar}
                   alt="avatar"
                   src={
-                    avatar == ""
+                    avatar == null
                       ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
                       : `http://localhost:8080/pic/${avatar}`
                   }

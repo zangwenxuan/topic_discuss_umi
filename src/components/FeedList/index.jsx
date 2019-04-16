@@ -1,5 +1,5 @@
 import React from "react";
-import {Avatar, Icon, List, message, Popover, Tag, Tooltip} from "antd";
+import { Avatar, Icon, List, message, Popover, Tag, Tooltip } from "antd";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
 import moment from "moment";
@@ -8,15 +8,15 @@ import Link from "umi/link";
 
 import Editor from "../../components/Editor";
 import PersonalCard from "../../components/PersonalCard";
-import {routerRedux, withRouter} from "dva/router";
-import {connect} from "dva";
+import { withRouter } from "dva/router";
+import { connect } from "dva";
 
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
 
 class FeedList extends React.Component {
   state = {
-    dataSource:[],
+    dataSource: [],
     visible: false,
     feedId: "",
     commentValue: "",
@@ -27,19 +27,15 @@ class FeedList extends React.Component {
     likeNum: [],
     messageNum: []
   };
-  componentDidMount = ()=> {
-    const { getContentList, match, getContentListByTheme } = this.props;
-    const { params } = match;
-    if (!params.themeName) {
-      getContentList();
-    } else {
-      getContentListByTheme(params.themeName);
-      console.log(this.props)
-      this.setState({
-        themeName: params.themeName
-      });
-    }
+  static defaultProps={
+    showClose:false
   }
+  componentDidMount(){
+    const { feed } = this.props;
+    this.setState({
+      ...feed
+    })
+  };
   componentDidUpdate = prevProps => {
     if (prevProps.feed !== this.props.feed) {
       const {
@@ -57,34 +53,17 @@ class FeedList extends React.Component {
         messageNum
       });
     }
-    const { match, getContentListByTheme } = this.props;
-    const { themeName } = this.state;
-    const { params } = match;
-    if (params.themeName && themeName !== params.themeName) {
-      getContentListByTheme(params.themeName);
-      this.setState({
-        themeName: params.themeName
-      });
-    }
   };
   componentWillUnmount() {
     const { likeList, keepList } = this.state;
-    const { freshFeed, user } = this.props;
-    let payload;
-    if (!user.user) {
-      payload = {
+    const { freshFeed } = this.props;
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      freshFeed({
         likeList,
         keepList
-      };
-    } else {
-      payload = {
-        likeList,
-        keepList,
-        uid: user.user.uid
-      };
+      });
     }
-    freshFeed(payload);
-    console.log("开始销毁");
   }
   IconText = ({ type, text, value, onClick, feedId }) => {
     const { likeList, keepList, likeNum, keepNum, messageNum } = this.state;
@@ -97,8 +76,8 @@ class FeedList extends React.Component {
           : false;
       JSON.stringify(likeNum) !== "[]"
         ? likeNum.forEach(l => {
-          if (l.feedId == feedId) num = l.num;
-        })
+            if (l.feedId == feedId) num = l.num;
+          })
         : "";
     } else if (type == "star-o") {
       status =
@@ -107,14 +86,14 @@ class FeedList extends React.Component {
           : false;
       JSON.stringify(keepNum) !== "[]"
         ? keepNum.forEach(l => {
-          if (l.feedId == feedId) num = l.num;
-        })
+            if (l.feedId == feedId) num = l.num;
+          })
         : "";
     } else {
       JSON.stringify(messageNum) !== "[]"
         ? messageNum.forEach(l => {
-          if (l.feedId == feedId) num = l.num;
-        })
+            if (l.feedId == feedId) num = l.num;
+          })
         : "";
     }
     return (
@@ -140,7 +119,6 @@ class FeedList extends React.Component {
     const { likeList, likeNum } = this.state;
     let list = likeList;
     let num = likeNum;
-    console.log(likeList.map(l => l.feedId));
     if (!likeList.map(l => l.feedId).some(f => f === feedId)) {
       list.push({ feedId, isLiked: true });
       num = likeNum.map(l => {
@@ -164,7 +142,6 @@ class FeedList extends React.Component {
         return l;
       });
     }
-    console.log(`${likeNum}****${likeList}`);
     this.setState({
       likeNum: num,
       likeList: list
@@ -250,7 +227,7 @@ class FeedList extends React.Component {
     );
   };
   submit = value => {
-    const { user, postComment } = this.props;
+    const { postComment } = this.props;
     const payload = {
       sendContentFeedId: this.state.feedId,
       comCon: value,
@@ -271,18 +248,16 @@ class FeedList extends React.Component {
   };
   render() {
     const {
+      onCloseClick,
+      showClose,
       feed,
       global,
-      queryUser,
       cardLoading,
       newFollow,
       cancelFollow,
-      freshChatNotice
     } = this.props;
     const popProps = {
       ...global,
-      freshChatNotice,
-      queryUser,
       cardLoading,
       newFollow,
       cancelFollow
@@ -308,6 +283,7 @@ class FeedList extends React.Component {
         renderItem={item => (
           <div>
             <List.Item
+              style={{backgroundColor:"#fff",marginBottom:"5px",padding:"24px"}}
               key={item.feedId}
               actions={[
                 <this.IconText
@@ -329,12 +305,13 @@ class FeedList extends React.Component {
                   onClick={this.showComment.bind(this, item.feedId)}
                 />,
                 <span>
-                发布于
+                  发布于
                   {moment().subtract(1, "days") < item.releaseTime
                     ? moment(item.releaseTime).fromNow()
                     : moment(item.releaseTime).format(dateFormat)}
-              </span>
+                </span>
               ]}
+              extra={showClose?<Icon type={"close"} onClick={()=>onCloseClick(item)} />:null}
             >
               <List.Item.Meta
                 avatar={
@@ -345,26 +322,29 @@ class FeedList extends React.Component {
                     content={<PersonalCard {...item} {...popProps} />}
                   >
                     <Avatar
+                      size={40}
                       src={
-                        item.avatar == ""
+                        item.avatar == null
                           ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
                           : `http://localhost:8080/pic/${item.avatar}`
                       }
                     />
                   </Popover>
                 }
-                title={<span>
-                  {item.nickname}</span>
-                }
+                title={<span>{item.nickname}</span>}
                 description={this.showTags(item)}
               />
-              <Link to={`/details/${item.feedId}`}><font color="black" size="4" style={{marginLeft:"50px"}} >{item.content}</font></Link>
-              <Zmage imageUrls={item.picList}/>
+              <Link to={`/details/${item.feedId}`}>
+                <font color="black" size="4" style={{ marginLeft: "50px" }}>
+                  {item.content}
+                </font>
+              </Link>
+              <Zmage imageUrls={item.picList} />
             </List.Item>
-            {visible == true && feedId == item.feedId ? (
-              <Editor onChange={this.onChange} onSubmit={this.submit}/>
+            {visible && feedId === item.feedId ? (
+              <Editor onChange={this.onChange} onSubmit={this.submit} />
             ) : (
-              <div/>
+              <div />
             )}
           </div>
         )}
@@ -387,7 +367,7 @@ function mapDispatchToProps(dispatch) {
     freshChatNotice: () => {
       dispatch({
         type: "user/getChatNotice"
-      })
+      });
     },
     cancelFollow: payload => {
       dispatch({
@@ -438,4 +418,3 @@ export default withRouter(
     mapDispatchToProps
   )(FeedList)
 );
-

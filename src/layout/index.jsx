@@ -6,7 +6,7 @@ import styles from "./index.less";
 import Header from "./Header";
 import Login from "../pages/login"
 
-const Authorized = RenderAuthorized("us");
+const Authorized = RenderAuthorized("user");
 const noMatch = <Alert message="No permission." type="error" showIcon />;
 const noMatchs = <div style={{height:"700px"}}><Modal  visible={true}><Login/></Modal></div>;
 const { Content, Footer } = Layout;
