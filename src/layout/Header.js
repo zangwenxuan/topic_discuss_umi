@@ -1,10 +1,11 @@
 import React, { Component } from "react";
-import { Layout, Menu, Icon, Avatar, Dropdown, message } from "antd";
+import { Layout, Menu, Icon, Avatar, Dropdown } from "antd";
 import Link from "umi/link";
 import router from "umi/router";
 import styles from "./Header.less";
-import { routerRedux } from "dva/router";
 import { connect } from "dva";
+
+import LoginModal from "../components/LoginModal";
 import NoticeIcon from "../components/NoticeIcon";
 import Search from "../components/HeaderSrarch";
 
@@ -18,19 +19,68 @@ class HeaderPanel extends Component {
   state = {
     itemClick: true,
     visible: false,
+    loginVisible: false,
     user: undefined,
-    ws: undefined,
-    chatMessage: []
+    ws: undefined
   };
 
-  componentWillMount() {
+  componentDidMount() {
+    const {
+      dispatch,
+      user: { currentUser }
+    } = this.props;
+    if (!currentUser) {
+      const token = localStorage.getItem("token");
+      if (!!token) {
+        dispatch({
+          type: "user/getCurrentUser"
+        });
+      }
+    }
+    if (!!currentUser) {
+      this.webSocket();
+      dispatch({
+        type: "user/getNotice"
+      });
+      dispatch({
+        type: "user/getChatNotice"
+      });
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const {
+      user: { currentUser },
+      dispatch
+    } = this.props;
+    if (
+      !!currentUser &&
+      prevProps.user.currentUser !== this.props.user.currentUser
+    ) {
+      this.webSocket();
+      dispatch({
+        type: "user/getNotice"
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    const { ws } = this.state;
+    if (ws) {
+      ws.close();
+    }
+  }
+
+  webSocket = () => {
     let { ws } = this.state;
-    const { dispatch } = this.props;
-    const user = JSON.parse(sessionStorage.getItem("user"));
-    if (!user) {
+    const {
+      user: { currentUser },
+      dispatch
+    } = this.props;
+    if (!currentUser) {
       return null;
     }
-    const wsUrl = `ws://localhost:8080/websocket/${user.uid}`;
+    const wsUrl = `ws://localhost:8080/websocket/${currentUser.uid}`;
     if (!ws) {
       ws = new WebSocket(wsUrl);
       this.setState({
@@ -42,10 +92,10 @@ class HeaderPanel extends Component {
       ws.onmessage = msg => {
         console.log("接收服务端发过来的消息: %o", msg);
         let msgJson = JSON.parse(msg.data);
-        if (msgJson.MsgCode == "999999") {
+        if (msgJson.MsgCode === "999999") {
           //多设备在线的异常发生时;
           window.location.href = "/#/";
-        } else if (msgJson.MsgCode == "555555") {
+        } else if (msgJson.MsgCode === "555555") {
           //用户退出系统的时候;
           ws.close();
           window.location.href = "/#/";
@@ -53,36 +103,12 @@ class HeaderPanel extends Component {
         dispatch({
           type: "user/getChatNotice"
         });
-        /*this.setState({
-          chatMessage: [...chatMessage, { ...msgJson, clickClose: true }]
-        });*/
       };
       ws.onclose = function(e) {
         console.log("ws 连接关闭了");
-        console.log(e);
       };
     }
-  }
-
-  componentWillUnmount() {
-    const { ws } = this.state;
-    if (ws) {
-      ws.close();
-    }
-  }
-
-  componentDidMount() {
-    this.setState({
-      user: JSON.parse(sessionStorage.getItem("user")) || {}
-    });
-    const { dispatch } = this.props;
-    dispatch({
-      type: "user/getNotice"
-    });
-    dispatch({
-      type: "user/getChatNotice"
-    });
-  }
+  };
 
   search = value => {
     console.log(value);
@@ -94,6 +120,12 @@ class HeaderPanel extends Component {
     dispatch({
       type: "global/changeNoticeReadState",
       payload: id
+    });
+  };
+
+  showLogin = () => {
+    this.setState({
+      loginVisible: true
     });
   };
 
@@ -116,15 +148,18 @@ class HeaderPanel extends Component {
       router.push("/personal");
     }
     if (key === "logout") {
+      const { ws } = this.state;
+      ws.close();
       this.setState({
-        user: undefined
+        user: undefined,
+        ws: undefined
       });
       dispatch({
         type: "user/logout"
       });
     }
     if (key === "login") {
-      router.push("/login");
+      this.showLogin();
     }
   };
 
@@ -148,12 +183,12 @@ class HeaderPanel extends Component {
     });
   };
 
-  handleCloseClick = (uid) => {
-    const {dispatch} = this.props
+  handleCloseClick = uid => {
+    const { dispatch } = this.props;
     dispatch({
       type: "user/deleteChatNote",
-      payload:{uid}
-    })
+      payload: { uid }
+    });
   };
 
   handleTabChange = key => {
@@ -170,9 +205,16 @@ class HeaderPanel extends Component {
     return count;
   };
 
+  handleLoginSubmit = user => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "user/checkUser",
+      payload: user
+    });
+  };
+
   onNoticeClear = type => {
     const { dispatch, chatNoticeClear } = this.props;
-    const { loading } = this.state;
     if (type === "私信") {
       this.setState({
         loading: chatNoticeClear
@@ -190,14 +232,14 @@ class HeaderPanel extends Component {
 
   onNoticeViewMore = type => {
     const { dispatch } = this.props;
-    if(type === "私信"){
+    if (type === "私信") {
       dispatch({
         type: "user/clearChatNotes"
-      })
+      });
     }
-  }
+  };
 
-  render() {
+  getNotice = () => {
     const {
       unreadFeedNotice = [],
       unreadSubscribeNotice = [],
@@ -217,8 +259,27 @@ class HeaderPanel extends Component {
         ...historySubscribeNotice
       ];
     }
-    const { user = {} } = this.state;
-    const { nickname = null, avatar = "" } = user;
+    return {
+      unreadSubscribeNotice,
+      unreadFeedNotice,
+      subscribeNotice,
+      feedNotice,
+      chatNotice
+    };
+  };
+
+  render() {
+    const {
+      unreadSubscribeNotice,
+      unreadFeedNotice,
+      subscribeNotice,
+      feedNotice,
+      chatNotice
+    } = this.getNotice();
+    const {
+      user: { currentUser = {} }
+    } = this.props;
+    const { nickname = null, avatar = null } = currentUser;
     const menu = (
       <Menu
         className={styles.menu}
@@ -258,6 +319,12 @@ class HeaderPanel extends Component {
     );
     return (
       <Header className={styles.header}>
+        <LoginModal
+          onCancel={() => {
+            this.setState({ loginVisible: false });
+          }}
+          visible={this.state.loginVisible}
+        />
         <div className={styles.main}>
           <Link to="/">
             <span className={`${styles.action} ${styles.account}`}>
@@ -284,52 +351,54 @@ class HeaderPanel extends Component {
                 onPressEnter={value => this.search(value)}
               />
             </span>
-            <NoticeIcon
-              onTabChange={e => this.handleTabChange(e)}
-              className={styles.action}
-              count={
-                unreadSubscribeNotice.length +
-                unreadFeedNotice.length +
-                this.countUnreadChat(chatNotice)
-              }
-              onClear={this.onNoticeClear}
-              onViewMore={this.onNoticeViewMore}
-              handleChatClick={this.handleChatClick}
-              onItemClick={(item, tabProps) => {
+            {nickname ? (
+              <NoticeIcon
+                onTabChange={e => this.handleTabChange(e)}
+                className={styles.action}
+                count={
+                  unreadSubscribeNotice.length +
+                  unreadFeedNotice.length +
+                  this.countUnreadChat(chatNotice)
+                }
+                onClear={this.onNoticeClear}
+                onViewMore={this.onNoticeViewMore}
+                handleChatClick={this.handleChatClick}
+                onItemClick={(item, tabProps) => {
                 console.log(item, tabProps); // eslint-disable-line
-                this.onItemClick(item, tabProps);
-              }}
-              onPopupVisibleChange={this.onNoticeVisibleChange}
-            >
-              <NoticeIcon.Tab
-                showClear
-                count={unreadSubscribeNotice.length}
-                list={subscribeNotice}
-                title="关注"
-                emptyText="没有最新消息"
-                emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
-              />
-              <NoticeIcon.Tab
-                count={unreadFeedNotice.length}
-                list={feedNotice}
-                title="通知"
-                emptyText="没有最新消息"
-                emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
-                showViewMore
-              />
-              <NoticeIcon.Tab
-                clearLoading={this.props.chatNoticeClear}
-                onCloseClick={this.handleCloseClick}
-                clearClose
-                showClear
-                count={this.countUnreadChat(chatNotice)}
-                list={chatNotice}
-                title="私信"
-                emptyText="没有最新私信"
-                emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
-                showViewMore
-              />
-            </NoticeIcon>
+                  this.onItemClick(item, tabProps);
+                }}
+                onPopupVisibleChange={this.onNoticeVisibleChange}
+              >
+                <NoticeIcon.Tab
+                  showClear
+                  count={unreadSubscribeNotice.length}
+                  list={subscribeNotice}
+                  title="关注"
+                  emptyText="没有最新消息"
+                  emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
+                />
+                <NoticeIcon.Tab
+                  count={unreadFeedNotice.length}
+                  list={feedNotice}
+                  title="通知"
+                  emptyText="没有最新消息"
+                  emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
+                  showViewMore
+                />
+                <NoticeIcon.Tab
+                  clearLoading={this.props.chatNoticeClear}
+                  onCloseClick={this.handleCloseClick}
+                  clearClose
+                  showClear
+                  count={this.countUnreadChat(chatNotice)}
+                  list={chatNotice}
+                  title="私信"
+                  emptyText="没有最新私信"
+                  emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
+                  showViewMore
+                />
+              </NoticeIcon>
+            ) : null}
             <Dropdown overlay={nickname ? menu : logoutMenu}>
               <span className={`${styles.action} ${styles.account}`}>
                 <Avatar
@@ -342,7 +411,7 @@ class HeaderPanel extends Component {
                       : `http://localhost:8080/pic/${avatar}`
                   }
                 />
-                <span>{nickname || "UserName"}</span>
+                <span>{nickname || ""}</span>
               </span>
             </Dropdown>
           </div>

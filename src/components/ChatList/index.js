@@ -15,6 +15,13 @@ export default class ChatList extends Component {
   componentDidMount() {
   }
 
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    if(nextProps === this.props){
+      return false;
+    }
+    return true
+  }
+
   componentDidUpdate() {
     this.scrollToFooter("DidUpdate");
   }

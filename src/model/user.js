@@ -11,35 +11,41 @@ export default {
   effects: {
     *register({ payload }, { call, put }) {
       const res = yield call(request.fetch, "post", "/user/register", payload);
-      if (res.code === 0) {
+      if (!!res.res) {
+        yield put({
+          type: "getCurrentUser"
+        });
         yield put({
           type: "updateCaptchaStatus",
           payload: "ok"
-        })
-        sessionStorage.setItem("user", JSON.stringify(res.res));
+        });
+        localStorage.setItem("token", res.res);
         yield put(routerRedux.replace("/"));
       } else {
         yield put({
           type: "updateCaptchaStatus",
           payload: "error"
-        })
+        });
       }
     },
     *logout(action, { call, put }) {
       yield call(request.fetch, "get", "user/logout");
-      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("isLogin");
+      localStorage.removeItem("token");
       yield put({
         type: "clearUser"
       });
     },
-    *checkEmail({payload},{call,put}){
-      const res = yield call(request.fetch,"get",`/user/checkEmail?email=${payload}`)
-      if(res.code === 0){
-        yield put({
-          type: "updateEmailStatus",
-          payload: res.res?"ok":"error"
-        })
-      }
+    *checkEmail({ payload }, { call, put }) {
+      const res = yield call(
+        request.fetch,
+        "get",
+        `/user/checkEmail?email=${payload}`
+      );
+      yield put({
+        type: "updateEmailStatus",
+        payload: res.res ? "ok" : "error"
+      });
     },
     *checkName({ payload }, { call, put }) {
       const res = yield call(
@@ -47,57 +53,44 @@ export default {
         "get",
         `/user/checkName?name=${payload}`
       );
-      if (res.code === 0) {
-        yield put({
-          type: "updateNameStatus",
-          payload: res.res?"ok":"error"
-        });
-      }
+      yield put({
+        type: "updateNameStatus",
+        payload: res.res ? "ok" : "error"
+      });
     },
-    *clearChatNotes(action,{call,put}){
-      yield call(request.fetch,"delete","/chat/clearChatNotes")
+    *clearChatNotes(action, { call, put }) {
+      yield call(request.fetch, "delete", "/chat/clearChatNotes");
       yield put({
         type: "getChatNotice"
-      })
+      });
     },
     *clearReadStatus(action, { call, put }) {
       const res = yield call(request.fetch, "get", "/chat/clearReadStatus");
-      if (res.code === 0) {
-        yield put({
-          type: "getChatNotice"
-        });
-      }
+      yield put({
+        type: "getChatNotice"
+      });
     },
     *getCaptcha({ payload }, { call, put }) {
       yield call(request.fetch, "get", `/user/getCaptcha?email=${payload}`);
     },
     *getChatNotice(action, { call, put }) {
       const res = yield call(request.fetch, "get", "/chat/getChatNotice");
-      if (res.code === 0) {
-        yield put({
-          type: "freshChatNotice",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "freshChatNotice",
+        payload: res.res
+      });
     },
-    *deleteChatNote({payload},{call,put}){
-      yield call(request.fetch,"delete","/chat/deleteChatNote",payload)
+    *deleteChatNote({ payload }, { call, put }) {
+      yield call(request.fetch, "delete", "/chat/deleteChatNote", payload);
       yield put({
         type: "getChatNotice"
-      })
+      });
     },
     *updateChatStatus({ payload }, { call, put }) {
-      const data = yield call(
-        request.fetch,
-        "put",
-        "/chat/updateChatStatus",
-        payload
-      );
-      if (data.code === 0) {
-        const res = yield put({
-          type: "getChatNotice"
-        });
-      }
+      yield call(request.fetch, "put", "/chat/updateChatStatus", payload);
+      yield put({
+        type: "getChatNotice"
+      });
     },
     *changeNoticeStatus({ payload }, { call, put, select }) {
       const data = yield select(state => state.user);
@@ -105,29 +98,31 @@ export default {
         unreadFeedNotice: data.unreadFeedNotice,
         unreadSubscribeNotice: data.unreadSubscribeNotice
       });
-      if (res.code === 0) {
-        yield put({
-          type: "clearNotice"
-        });
-      }
+      yield put({
+        type: "clearNotice"
+      });
     },
     *getNotice(action, { call, put }) {
       const res = yield call(request.fetch, "get", "/user/getNotice");
-      if (res.code === 0) {
-        yield put({
-          type: "freshNotice",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "getChatNotice"
+      });
+      yield put({
+        type: "freshNotice",
+        payload: res.res
+      });
     },
     *checkUser({ payload }, { call, put }) {
       const res = yield call(request.fetch, "POST", "/user/check", payload);
-      if (res.code == 0) {
+      if (!!res.res) {
+        yield put({
+          type: "getCurrentUser"
+        });
         yield put({
           type: "updateLoginState",
-          payload: { ...res, status: "ok" }
+          payload: { status: "ok" }
         });
-        sessionStorage.setItem("user", JSON.stringify(res.res));
+        localStorage.setItem("token", res.res);
         yield put(routerRedux.replace("/"));
       } else {
         yield put({
@@ -135,20 +130,31 @@ export default {
           payload: { status: "error" }
         });
       }
+    },
+    *getCurrentUser(action, { call, put }) {
+      const res = yield call(request.fetch, "get", "user/getCurrentUser");
+      yield put({
+        type: "updateCurrentUser",
+        payload: res.res
+      });
+      sessionStorage.setItem("isLogin", JSON.stringify(true));
     }
   },
   reducers: {
-    changeCaptcha(state,action){
-      return {...state,captchaAvailable: undefined}
+    updateCurrentUser(state, { payload }) {
+      return { ...state, currentUser: payload };
     },
-    updateEmailStatus(state,{payload}){
-      return {...state,emailAvailable: payload}
+    changeCaptcha(state, action) {
+      return { ...state, captchaAvailable: undefined };
+    },
+    updateEmailStatus(state, { payload }) {
+      return { ...state, emailAvailable: payload };
     },
     updateNameStatus(state, { payload }) {
       return { ...state, nameAvailable: payload };
     },
-    updateCaptchaStatus(state,{payload}) {
-      return {...state, captchaAvailable: payload}
+    updateCaptchaStatus(state, { payload }) {
+      return { ...state, captchaAvailable: payload };
     },
     freshChatNotice(state, { payload }) {
       return { ...state, chatNotice: payload };
@@ -166,8 +172,7 @@ export default {
       };
     },
     updateLoginState(state, { payload }) {
-      localStorage.setItem("token", payload.token);
-      return { ...state, user: payload.res, status: payload.status };
+      return { ...state, status: payload.status };
     },
     clearUser(state, { payload }) {
       return { status: undefined };

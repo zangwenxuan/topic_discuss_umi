@@ -3,6 +3,7 @@ import { Form, Button, Input, Icon, Row, Col, Alert } from "antd";
 import Link from "umi/link";
 import styles from "./Register.less";
 import { connect } from "dva";
+import router from "umi/router";
 
 @connect(({ user }) => ({
   user
@@ -16,7 +17,16 @@ class Register extends Component {
     prefix: "86"
   };
 
+  componentDidMount() {
+    if (!!this.props.user.currentUser) {
+      router.push("/content");
+    }
+  }
+
   componentDidUpdate(prevProps, prevState, snapshot) {
+    if (!!this.props.user.currentUser && this.props.user.currentUser !== prevProps.user.currentUser) {
+      router.push("/content");
+    }
     const form = this.props.form;
     if (prevProps.user.nameAvailable !== this.props.user.nameAvailable) {
       form.validateFields(["nickname"], { force: true });
@@ -255,7 +265,8 @@ class Register extends Component {
     );
     return (
       <div className={styles.main}>
-        <div style={{ height: "300px" }} />
+        <div style={{ height: "200px" }} />
+        <p style={{ fontSize: "50px", textAlign: "center" }}>注册</p>
         {form}
       </div>
     );

@@ -38,7 +38,6 @@ export default class NoticeIcon extends PureComponent {
   };
 
   onItemClick = (item, tabProps) => {
-    console.log(item);
     const { handleChatClick } = this.props;
     const { clickClose } = item;
     if (item.type === 10) {

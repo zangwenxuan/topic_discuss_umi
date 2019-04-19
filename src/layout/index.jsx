@@ -1,10 +1,11 @@
 import { Layout, Alert, Modal } from "antd";
 import RenderAuthorized from "ant-design-pro/lib/Authorized";
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 import React, { Component } from "react";
 import styles from "./index.less";
 
 import Header from "./Header";
-import Login from "../pages/login"
+import Login from "../pages/Login/Login"
 
 const Authorized = RenderAuthorized("user");
 const noMatch = <Alert message="No permission." type="error" showIcon />;
@@ -44,9 +45,14 @@ class BasicLayout extends Component {
         <Content style={{ padding: "0 50px" }} className={styles.content}>
           {/*         <Row className={styles.row}>
           <Col span={22}  className={styles.content}>*/}
-          <Authorized authority={routerConfig} noMatch={noMatchs}>
-            {this.props.children}
-          </Authorized>
+        {/*  <Authorized authority={routerConfig} noMatch={noMatchs}>
+            <TransitionGroup>
+              <CSSTransition key={this.props.location.pathname} classNames={styles.fade} timeout={3000}>
+                { this.props.children }
+              </CSSTransition>
+            </TransitionGroup>
+          </Authorized>*/}
+          { this.props.children }
           {/*          </Col>
             <Col span={1}>
               <Affix offsetTop={300} ><Button >侧边栏</Button><a href='#top'>Top</a></Affix>

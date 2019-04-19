@@ -4,18 +4,11 @@ export default {
   state: {},
   effects: {
     *newFollow({ payload }, { call, put }) {
-      const res = yield call(
-        api.fetch,
-        "post",
-        "/follow/newFollow",
-        payload
-      );
-      if (res.code === 0) {
-        yield put({
-          type: "changeStatus",
-          payload: res.res
-        });
-      }
+      const res = yield call(api.fetch, "post", "/follow/newFollow", payload);
+      yield put({
+        type: "changeStatus",
+        payload: res.res
+      });
     },
     *cancelFollow({ payload }, { call, put }) {
       const res = yield call(
@@ -24,12 +17,10 @@ export default {
         "/follow/cancelFollow",
         payload
       );
-      if (res.code === 0) {
-        yield put({
-          type: "changeStatus",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "changeStatus",
+        payload: res.res
+      });
     },
     *queryUser({ payload }, { call, put }) {
       const res = yield call(
@@ -37,12 +28,10 @@ export default {
         "get",
         `/follow/queryUserCard?uid=${payload}`
       );
-      if (res.code === 0) {
-        yield put({
-          type: "showUserCard",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "showUserCard",
+        payload: res.res
+      });
     }
   },
   reducers: {

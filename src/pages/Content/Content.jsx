@@ -1,29 +1,25 @@
 import React, { Component } from "react";
 import { Avatar, Collapse, Card } from "antd";
-import Link from "umi/link";
 import { connect } from "dva";
-import moment from "moment";
-import "moment/locale/zh-cn";
 
 import styles from "./index.less";
+import LoginModal from "../../components/LoginModal"
 import EditorFeed from "../../components/EditorFeed";
 import FeedList from "../../components/FeedList";
-
 import Tags from "../../components/Tag";
+
 const Panel = Collapse.Panel;
 const Meta = Card.Meta;
-const dateFormat = "YYYY-MM-DD HH:mm:ss";
-moment.locale("zh-cn");
 
 @connect(({ feed }) => ({ feed }))
 class ContentPanel extends Component {
   state = {
     themeName: "",
+    loginVisible: false
   };
 
   componentDidMount = () => {
-    const { match, dispatch } = this.props;
-    const { params } = match;
+    const { match:{params}, dispatch } = this.props;
     if (!params.themeName) {
       dispatch({
         type: "feed/getContentList"
@@ -54,12 +50,10 @@ class ContentPanel extends Component {
     }
   };
 
-  componentWillUnmount() {
-  }
-
   render() {
     return (
       <div>
+        <LoginModal visible={this.state.loginVisible} onCancel={()=>this.setState({loginVisible:false})}/>
         <div className={styles.card}>
           <Card
             bordered={false}

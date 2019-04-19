@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Tooltip, List, Avatar, Input, Divider, Button, Col, Row } from "antd";
 import { connect } from "dva";
+import router from "umi/router";
 import styles from "./index.less";
 
 import ChatList from "../../components/ChatList";
@@ -22,28 +23,39 @@ class MsgPopPage extends Component {
     value: "",
     shouldScroll: true,
     msgList: [],
-    user: undefined,
+    currentUser: undefined,
     ws: undefined
   };
 
   componentWillUnmount() {
     const { ws } = this.state;
-    if(ws) {
+    if (ws) {
       ws.close();
     }
   }
 
+  componentWillMount() {}
+
   componentDidMount = () => {
-    const { dispatch, match } = this.props;
+    const isLogin = sessionStorage.getItem("isLogin");
+    if (!isLogin) {
+      router.push("/login");
+      return;
+    }
+    const {
+      dispatch,
+      match,
+      user: { currentUser }
+    } = this.props;
     const { params } = match;
-    this.webSocket(params.uid);
+    this.webSocket(currentUser.uid, params.uid);
     dispatch({
       type: "chatMsg/getAllMessage",
       payload: params.uid
     });
     this.setState({
       guestId: params.uid,
-      user: JSON.parse(sessionStorage.getItem("user")),
+      currentUser
     });
   };
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -64,12 +76,12 @@ class MsgPopPage extends Component {
     const { dispatch, match } = this.props;
     const { params } = match;
     if (guestId && guestId !== params.uid) {
-      if(ws) {
+      if (ws) {
         ws.close();
       }
-      this.webSocket(params.uid)
+      this.webSocket(params.uid);
       this.setState({
-        guestId: params.uid,
+        guestId: params.uid
       });
       dispatch({
         type: "chatMsg/getAllMessage",
@@ -78,10 +90,9 @@ class MsgPopPage extends Component {
     }
   }
 
-  webSocket = id => {
+  webSocket = (currentUserId, id) => {
     let { ws } = this.state;
-    const user = JSON.parse(sessionStorage.getItem("user"));
-    const wsUrl = `ws://localhost:8080/websocket/${user.uid}${id}`;
+    const wsUrl = `ws://localhost:8080/websocket/${currentUserId}${id}`;
     if (!ws) {
       ws = new WebSocket(wsUrl);
       this.setState({
@@ -105,7 +116,7 @@ class MsgPopPage extends Component {
         this.setState({
           msgList: [
             ...msgList,
-            { toUserId: user.uid, message: msgJson.content }
+            { toUserId: currentUserId, message: msgJson.content }
           ]
         });
         console.log(msgJson);
@@ -125,7 +136,7 @@ class MsgPopPage extends Component {
   };
 
   handleClick = () => {
-    const { value, guestId, msgList, user } = this.state;
+    const { value, guestId, msgList, currentUser } = this.state;
     const { dispatch } = this.props;
     if (value === "") {
       return null;
@@ -133,7 +144,7 @@ class MsgPopPage extends Component {
     this.setState({
       value: "",
       shouldScroll: true,
-      msgList: [...msgList, { fromUserId: user.uid, message: value }]
+      msgList: [...msgList, { fromUserId: currentUser.uid, message: value }]
     });
     dispatch({
       type: "chatMsg/sendMessage",
@@ -175,12 +186,9 @@ class MsgPopPage extends Component {
       value,
       shouldScroll,
       msgList = {},
-      user = {}
+      currentUser = {}
     } = this.state;
-    const {
-      route: { routes }
-    } = this.props;
-    const { avatar = {}, uid = {} } = user;
+    const { avatar = {}, uid = {} } = currentUser;
     const chatProps = {
       msgList: msgList,
       guestAvatar,

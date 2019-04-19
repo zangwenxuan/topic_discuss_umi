@@ -11,29 +11,60 @@ export default {
     ]
   ],
   routes: [
-    {
-      path: "/login",
-      component: "login"
-    },
-    {
+    /*{
+      path: "/Login",
+      component: "Login/Login"
+    },*/
+    /*{
       path: "/register",
       component: "user/register"
-    },
+    },*/
     {
       path: "/",
       component: "../layout",
       routes: [
         { path: "/", redirect: "/content" },
+        {
+          path: "/login",
+          component: "Login/Login"
+        },
+        {
+          path: "/register",
+          component: "user/register"
+        },
+        {
+          path: "/exception",
+          icon: "warning",
+          routes: [
+            {
+              path: "/exception/403",
+              name: "not-permission",
+              component: "./Exception/403"
+            },
+            {
+              path: "/exception/404",
+              name: "not-find",
+              component: "./Exception/404"
+            },
+            {
+              path: "/exception/500",
+              name: "server-error",
+              component: "./Exception/500"
+            }
+          ]
+        },
         { path: "/test", component: "InfiniteListExample/InfiniteListExample" },
-        { path: "/personal", component: "PersonalCenter" },
+        { path: "/personal/:uid", component: "PersonalCenter/PersonalCenter" },
+        { path: "/personal", component: "PersonalCenter/PersonalCenter" },
         {
           path: "/chatRom/:uid",
-          component: "ChatRom/chatRom",
+          component: "ChatRom/ChatRom",
           authority: "user"
         },
-        { path: "/content", component: "./Content/content" },
-        { path: "/content/:themeName", component: "./Content/content" },
-        { path: "/details/:feedId", component: "details" }
+        { path: "/content", component: "Content/Content" },
+        { path: "/content/:themeName", component: "Content/Content" },
+        { path: "/details/:feedId", component: "Details/Details" },
+        {component: '404'}
       ]
     }
   ],

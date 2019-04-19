@@ -3,14 +3,9 @@ import {
   Card,
   Icon,
   Avatar,
-  Button,
-  Input,
-  Row,
-  Col,
   Tag,
   Tooltip
 } from "antd";
-import { withRouter } from "react-router";
 import { connect } from "dva";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
@@ -18,20 +13,44 @@ import Link from "umi/link";
 
 import Editor from "../../components/Editor";
 import CommentList from "../../components/CommentList";
+import LoginModal from "../../components/LoginModal";
 
 const { Meta } = Card;
-const TextArea = Input.TextArea;
 
+@connect(({ user, details, loading }) => ({
+  details,
+  user,
+  Loading: loading.effects["details/getContentDetails"],
+  submitting: loading.effects["details/postComment"]
+}))
 class Details extends Component {
+  state = {
+    feedId: "",
+    visible: false,
+    isLiked: false,
+    isKeep: false,
+    likeNum: "",
+    keepNum: "",
+    messageNum: "",
+    loginVisible: false
+  };
+
   componentDidMount() {
-    const { match, getContentDetails } = this.props;
+    window.scrollTo(0, 0);
+    const { match, dispatch } = this.props;
     const { params } = match;
-    getContentDetails(params.feedId);
+    dispatch({
+      type: "details/getContentDetails",
+      payload: params.feedId
+    });
     this.setState({
       feedId: params.feedId
     });
   }
-  componentDidUpdate = prevProps => {
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (this.props.location !== prevProps.location) {
+      window.scrollTo(0, 0);
+    }
     if (prevProps.details !== this.props.details) {
       const {
         isLiked,
@@ -49,41 +68,30 @@ class Details extends Component {
       });
       console.log(this.state);
     }
-    const { match, getContentDetails } = this.props;
+    const { match, dispatch } = this.props;
     const { params } = match;
     if (params.feedId && params.feedId !== this.state.feedId) {
-      getContentDetails(params.feedId);
+      dispatch({
+        type: "details/getContentDetails",
+        payload: params.feedId
+      });
       this.setState({
         feedId: params.feedId
       });
     }
-  };
-  componentWillUnmount() {
-    const { freshByFeedId } = this.props;
-    const { isKeep, isLiked, feedId } = this.state;
-    const payload = {
-      isLiked,
-      isKeep,
-      feedId
-    };
-    freshByFeedId(payload);
   }
-
-  state = {
-    feedId: "",
-    visible: false,
-    isLiked: false,
-    isKeep: false,
-    likeNum: "",
-    keepNum: "",
-    messageNum: ""
-  };
   onChange = e => {
     this.setState({
       commentValue: e.target.value
     });
   };
   handleLikeChange = () => {
+    const { dispatch } = this.props;
+    const {feedId} = this.state
+    dispatch({
+      type: "feed/like",
+      payload: feedId
+    });
     const { isLiked, likeNum } = this.state;
     this.setState({
       likeNum: isLiked ? likeNum - 1 : likeNum + 1,
@@ -91,6 +99,12 @@ class Details extends Component {
     });
   };
   handleKeepChange = () => {
+    const { dispatch } = this.props;
+    const {feedId} = this.state
+    dispatch({
+      type: "feed/keep",
+      payload: feedId
+    });
     const { isKeep, keepNum } = this.state;
     this.setState({
       keepNum: isKeep ? keepNum - 1 : keepNum + 1,
@@ -129,15 +143,17 @@ class Details extends Component {
     );
   };
   submit = value => {
-    const { user, postComment } = this.props;
+    const { dispatch } = this.props;
     const { visible } = this.state;
     const payload = {
       sendContentFeedId: this.state.feedId,
-      userUid: user.user.uid,
       comCon: value,
       time: new Date().getTime()
     };
-    postComment(payload);
+    dispatch({
+      type: "details/postComment",
+      payload
+    });
     this.setState({
       visible: !visible
     });
@@ -187,19 +203,33 @@ class Details extends Component {
       </div>
     );
   };
+
+  postCommentReply = payload => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "details/postCommentReply",
+      payload
+    });
+  };
   render() {
-    const { details, Loading, submitting, user, postCommentReply } = this.props;
+    const { details, Loading, submitting, user } = this.props;
     const { feedId, visible } = this.state;
     const { contentDetails = {}, commentUserList = {} } = details;
     const { picList = {}, themeList = {} } = contentDetails;
     const commentList = {
       feedId,
       user,
-      postCommentReply,
+      postCommentReply: this.postCommentReply,
       dataSource: commentUserList
     };
     return (
       <div>
+        <LoginModal
+          onCancel={() => {
+            this.setState({ loginVisible: false });
+          }}
+          visible={this.state.loginVisible}
+        />
         <Card
           className={styles.card}
           actions={[
@@ -249,45 +279,4 @@ class Details extends Component {
   }
 }
 
-function mapStateToProps({ user, details, loading }) {
-  return {
-    details,
-    user,
-    Loading: loading.effects["details/getContentDetails"],
-    submitting: loading.effects["details/postComment"]
-  };
-}
-function mapDispatchToProps(dispatch) {
-  return {
-    freshByFeedId: payload => {
-      dispatch({
-        type: "details/freshByFeedId",
-        payload
-      });
-    },
-    getContentDetails: id => {
-      dispatch({
-        type: "details/getContentDetails",
-        payload: id
-      });
-    },
-    postComment: payload => {
-      dispatch({
-        type: "details/postComment",
-        payload
-      });
-    },
-    postCommentReply: payload => {
-      dispatch({
-        type: "details/postCommentReply",
-        payload
-      });
-    }
-  };
-}
-export default withRouter(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(Details)
-);
+export default Details

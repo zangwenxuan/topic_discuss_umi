@@ -3,31 +3,27 @@ export default {
   namespace: "details",
   state: {},
   effects: {
-    *freshByFeedId({payload},{call,put,select}){
-      yield call(api.fetch,"post","/content/freshByFeedId",payload)
+    *freshByFeedId({ payload }, { call, put, select }) {
+      yield call(api.fetch, "post", "/content/freshByFeedId", payload);
     },
     *getContentDetails({ payload }, { call, put }) {
-      let url =  `/content/details?feedId=${payload}`
+      let url = `/content/details?feedId=${payload}`;
+      const res = yield call(api.fetch, "get", url);
+      yield put({
+        type: "showContentDetails",
+        payload: res.res
+      });
+    },
+    *freshComment({ payload }, { call, put }) {
       const res = yield call(
         api.fetch,
         "get",
-        url
+        `/content/freshComment?feedId=${payload}`
       );
-      if (res.code == "0") {
-        yield put({
-          type: "showContentDetails",
-          payload: res.res
-        });
-      }
-    },
-    *freshComment({payload},{call,put}){
-      const res = yield call(api.fetch,"get",`/content/freshComment?feedId=${payload}`)
-      if (res.code == "0") {
-        yield put({
-          type: "changeCommentList",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "changeCommentList",
+        payload: res.res
+      });
     },
     *postComment({ payload }, { call, put }) {
       const res = yield call(
@@ -36,26 +32,35 @@ export default {
         "/content/postComment",
         payload
       );
-      if (res.code == "0") {
-        yield put({
-          type: "changeCommentList",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "changeCommentList",
+        payload: res.res
+      });
     },
-    *postCommentReply({payload},{call,put}){
-      const res = yield call(api.fetch,"post","/content/postCommentReply",payload.commentReply)
-      if (res.code == "0") {
-        yield put({
-          type: "freshComment",
-          payload: payload.feedId
-        });
-      }
+    *postCommentReply({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "post",
+        "/content/postCommentReply",
+        payload.commentReply
+      );
+      yield put({
+        type: "freshComment",
+        payload: payload.feedId
+      });
     }
   },
   reducers: {
     showContentDetails(state, { payload }) {
-      const {isLiked,isKeep,contentDetails,commentUserList,likeNum,keepNum,messageNum} = payload
+      const {
+        isLiked,
+        isKeep,
+        contentDetails,
+        commentUserList,
+        likeNum,
+        keepNum,
+        messageNum
+      } = payload;
       return {
         ...state,
         contentDetails,

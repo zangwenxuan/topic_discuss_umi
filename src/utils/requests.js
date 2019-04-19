@@ -1,4 +1,5 @@
 import fetch from "dva/fetch";
+import router from 'umi/router'
 /*import downloadjs from "downloadjs";*/
 const BASE_URL = "/api";
 
@@ -9,9 +10,7 @@ function checkStatus(response) {
   }
   const err = new Error(`${status} ${statusText}`);
   err.code = status;
-  console.log("请求错误")
   throw err;
-  console.log("请求错误")
 }
 
 function parseJSON(response) {
@@ -26,8 +25,7 @@ function checkCode(response) {
   const err = new Error(error);
   err.code = code;
   err.trace = trace;
-  return err;
- // throw err;
+  throw err;
 }
 
 const request = {
@@ -41,11 +39,28 @@ const request = {
     if (body) {
       options.body = JSON.stringify(body);
     }
+    const token = localStorage.getItem("token");
+    if (!!token) {
+      options.headers.append("token", token);
+    }
     return fetch(`${BASE_URL}${url}`, options)
       .then(checkStatus)
       .then(parseJSON)
       .then(checkCode)
-      .catch(e => console.log(`捕捉到返回值错误：${e}`));
+      .catch(e =>{
+        if(e.code === 404){
+          router.push('/exception/404')
+          return
+        }
+        if(e.code === 500){
+          router.push('/exception/500')
+          return
+        }
+        if(e.code === 403){
+          router.push('/exception/403')
+          return
+        }
+      });
   },
 
   head(method, url) {
@@ -73,7 +88,7 @@ const request = {
     return this.fetch("delete", url);
   },
 
-/*
+  /*
   download(url, filename, mimetype) {
     let options = {
       method: "get",
@@ -92,7 +107,7 @@ const request = {
 
   upload(url, uploadFile) {
     const formData = new FormData();
-    console.log(uploadFile)
+    console.log(uploadFile);
     uploadFile.forEach(file => {
       formData.append("importFile", file);
     });
@@ -104,7 +119,7 @@ const request = {
       .then(checkStatus)
       .then(parseJSON)
       .then(checkCode);
-  },
+  }
 };
 
 export default request;

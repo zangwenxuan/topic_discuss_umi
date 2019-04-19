@@ -39,8 +39,8 @@ function LinkContent({ item, onItemClick }) {
   if (item.type === 10) {
     return (
       <Link to={`/chatRom/${item.uid}`} onClick={() => onItemClick(item)}>
-        <div className={styles.description} /*title={item.content}*/>
-          <Ellipsis length={30}>{item.content}</Ellipsis>
+        <div className={styles.description} title={item.content}>
+          <Ellipsis length={15}>{item.content}</Ellipsis>
         </div>
       </Link>
     );
@@ -48,8 +48,8 @@ function LinkContent({ item, onItemClick }) {
   if (item.type !== 4 && item !== -3) {
     return (
       <Link to={`/details/${item.feedId}`} onClick={() => onItemClick(item)}>
-        <div className={styles.description} /* title={item.content}*/>
-          <Ellipsis length={30}>{item.content}</Ellipsis>
+        <div className={styles.description} title={item.content}>
+          <Ellipsis length={15}>{item.content}</Ellipsis>
         </div>
       </Link>
     );

@@ -93,7 +93,7 @@ class UserList extends Component {
   };
   render() {
     const { userList } = this.state;
-    console.log(userList)
+    console.log(userList);
     const { global, cardLoading } = this.props;
     const popProps = {
       ...global,

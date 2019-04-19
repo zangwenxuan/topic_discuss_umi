@@ -5,76 +5,69 @@ export default {
     contentList: []
   },
   effects: {
-    *selectMyMaster(action, { call, put }) {
-      const res = yield call(api.fetch, "get", "/user/selectMyMaster");
-      if (res.code === 0) {
-        yield put({
-          type: "showContentList",
-          payload: res.res
-        });
-      }
+    *selectPersonalMaster({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "get",
+        `/user/selectPersonalMaster?uid=${payload}`
+      );
+      yield put({
+        type: "showContentList",
+        payload: res.res
+      });
     },
-    *selectMyFeed(action, { call, put }) {
-      const res = yield call(api.fetch, "get", "/user/selectMyFeed");
-      if (res.code === 0) {
-        yield put({
-          type: "showContentList",
-          payload: res.res
-        });
-      }
+    *selectPersonalFeed({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "get",
+        `/user/selectPersonalFeed?uid=${payload}`
+      );
+      yield put({
+        type: "showContentList",
+        payload: res.res
+      });
     },
-    *selectMyKeep(action, { call, put }) {
-      const res = yield call(api.fetch, "get", "/user/selectMyKeep");
-      if (res.code === 0) {
-        yield put({
-          type: "showContentList",
-          payload: res.res
-        });
-      }
+    *selectPersonalKeep({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "get",
+        `/user/selectPersonalKeep?uid=${payload}`
+      );
+      yield put({
+        type: "showContentList",
+        payload: res.res
+      });
     },
     *freshFeed({ payload }, { call }) {
       yield call(api.fetch, "post", "/content/freshFeed", payload);
     },
+    *like({ payload }, { call, put }) {
+      yield call(api.fetch, "post", "/content/like", payload);
+    },
+    *keep({ payload }, { call, put }) {
+      yield call(api.fetch, "post", "/content/keep", payload);
+    },
     *submit({ payload }, { call, put }) {
-      const res = yield call(
-        api.fetch,
-        "post",
-        "/content/sendFeed",
-        payload
-      );
-      if (res.code === 0) {
-        yield put({
-          type: "getContentList"
-        });
-      }
+      const res = yield call(api.fetch, "post", "/content/sendFeed", payload);
+      yield put({
+        type: "getContentList"
+      });
     },
-    *getContentListByTheme({ payload }, { call, put, select }) {
-      const user = yield select(state => state.user.user);
+    *getContentListByTheme({ payload }, { call, put }) {
       let url = `/user/selectContentByTheme?themeName=${payload}`;
-      if (user) {
-        url = `/user/selectContentByTheme?themeName=${payload}&uid=${user.uid}`;
-      }
       const res = yield call(api.fetch, "get", url);
-      if (res.code === 0) {
-        yield put({
-          type: "showContentList",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "showContentList",
+        payload: res.res
+      });
     },
-    *getContentList({ payload }, { call, put, select }) {
-      const user = yield select(state => state.user.user);
+    *getContentList({ payload }, { call, put }) {
       let url = "/user/selectAllContent";
-      if (user) {
-        url = `/user/selectAllContent?uid=${user.uid}`;
-      }
       const res = yield call(api.fetch, "get", url);
-      if (res.code === 0) {
-        yield put({
-          type: "showContentList",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "showContentList",
+        payload: res.res
+      });
     }
   },
   reducers: {
@@ -89,6 +82,7 @@ export default {
       } = payload;
       return {
         ...state,
+        payload,
         contentList,
         keepList,
         keepNum,

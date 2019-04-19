@@ -5,15 +5,22 @@ import Zmage from "../../components/ContentImgs";
 import moment from "moment";
 import "moment/locale/zh-cn";
 import Link from "umi/link";
+import router from "umi/router";
 
 import Editor from "../../components/Editor";
 import PersonalCard from "../../components/PersonalCard";
-import { withRouter } from "dva/router";
 import { connect } from "dva";
 
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
 
+@connect(({ user, feed, global, loading }) => ({
+  feed,
+  user,
+  global,
+  Loading: loading.effects["feed/getContentList"],
+  cardLoading: loading.effects["global/queryUser"]
+}))
 class FeedList extends React.Component {
   state = {
     dataSource: [],
@@ -27,16 +34,24 @@ class FeedList extends React.Component {
     likeNum: [],
     messageNum: []
   };
-  static defaultProps={
-    showClose:false
-  }
-  componentDidMount(){
+  static defaultProps = {
+    keep: false,
+    showClose: false,
+    clickItem: false
+  };
+  componentDidMount() {
     const { feed } = this.props;
     this.setState({
       ...feed
-    })
-  };
-  componentDidUpdate = prevProps => {
+    });
+  }
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    if (nextProps.feed === this.props.feed && nextState === this.state && nextProps.showClose === this.props.showClose) {
+      return false;
+    }
+    return true;
+  }
+  componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.feed !== this.props.feed) {
       const {
         keepNum,
@@ -53,48 +68,38 @@ class FeedList extends React.Component {
         messageNum
       });
     }
-  };
-  componentWillUnmount() {
-    const { likeList, keepList } = this.state;
-    const { freshFeed } = this.props;
-    const user = sessionStorage.getItem("user");
-    if (user) {
-      freshFeed({
-        likeList,
-        keepList
-      });
-    }
   }
+
   IconText = ({ type, text, value, onClick, feedId }) => {
     const { likeList, keepList, likeNum, keepNum, messageNum } = this.state;
     let status = false;
     let num = "";
-    if (type == "like-o") {
+    if (type === "like-o") {
       status =
         JSON.stringify(likeList) !== "[]"
-          ? likeList.some(l => l.feedId == feedId && l.isLiked)
+          ? likeList.some(l => l.feedId === feedId && l.isLiked)
           : false;
       JSON.stringify(likeNum) !== "[]"
         ? likeNum.forEach(l => {
-            if (l.feedId == feedId) num = l.num;
+            if (l.feedId === feedId) num = l.num;
           })
         : "";
-    } else if (type == "star-o") {
+    } else if (type === "star-o") {
       status =
         JSON.stringify(keepList) !== "[]"
-          ? keepList.some(k => k.feedId == feedId && k.isKeep)
+          ? keepList.some(k => k.feedId === feedId && k.isKeep)
           : false;
       JSON.stringify(keepNum) !== "[]"
         ? keepNum.forEach(l => {
-            if (l.feedId == feedId) num = l.num;
+            if (l.feedId === feedId) num = l.num;
           })
         : "";
     } else {
       JSON.stringify(messageNum) !== "[]"
         ? messageNum.forEach(l => {
-            if (l.feedId == feedId) num = l.num;
+            if (l.feedId === feedId) num = l.num;
           })
-        : "";
+        : (num = "");
     }
     return (
       <span onClick={onClick}>
@@ -116,27 +121,31 @@ class FeedList extends React.Component {
     });
   };
   handleLikeChange = feedId => {
+    if(!sessionStorage.getItem("isLogin")){
+      return
+    }
+    const { dispatch } = this.props;
     const { likeList, likeNum } = this.state;
     let list = likeList;
     let num = likeNum;
     if (!likeList.map(l => l.feedId).some(f => f === feedId)) {
       list.push({ feedId, isLiked: true });
       num = likeNum.map(l => {
-        if (l.feedId == feedId) {
+        if (l.feedId === feedId) {
           return { feedId, num: l.num + 1 };
         } else return l;
       });
     } else {
       let isLiked = false;
       list = likeList.map(l => {
-        if (l.feedId == feedId) {
+        if (l.feedId === feedId) {
           isLiked = l.isLiked;
           return { feedId, isLiked: !l.isLiked };
         }
         return l;
       });
       num = likeNum.map(l => {
-        if (l.feedId == feedId) {
+        if (l.feedId === feedId) {
           return { feedId, num: isLiked ? l.num - 1 : l.num + 1 };
         }
         return l;
@@ -146,8 +155,16 @@ class FeedList extends React.Component {
       likeNum: num,
       likeList: list
     });
+    dispatch({
+      type: "feed/like",
+      payload: { feedId }
+    });
   };
   handleKeepChange = feedId => {
+    if(!sessionStorage.getItem("isLogin")){
+      return
+    }
+    const { dispatch } = this.props;
     const { keepList, keepNum } = this.state;
     let list = keepList;
     let num = keepNum;
@@ -177,6 +194,10 @@ class FeedList extends React.Component {
     this.setState({
       keepNum: num,
       keepList: list
+    });
+    dispatch({
+      type: "feed/keep",
+      payload: { feedId }
     });
   };
   onChange = e => {
@@ -227,13 +248,16 @@ class FeedList extends React.Component {
     );
   };
   submit = value => {
-    const { postComment } = this.props;
+    const { dispatch } = this.props;
     const payload = {
       sendContentFeedId: this.state.feedId,
       comCon: value,
       time: new Date().getTime()
     };
-    postComment(payload);
+    dispatch({
+      type: "details/postComment",
+      payload: payload
+    });
     this.setState({
       feedId: "",
       visible: false,
@@ -243,24 +267,53 @@ class FeedList extends React.Component {
   };
   queryUser = (visible, authorId) => {
     if (visible) {
-      this.props.queryUser(authorId);
+      const { dispatch } = this.props;
+      dispatch({
+        type: "global/queryUser",
+        payload: authorId
+      });
     }
   };
+  newFollow = payload => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "global/newFollow",
+      payload
+    });
+  };
+  cancelFollow = payload => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "global/cancelFollow",
+      payload
+    });
+  };
+  extra = item => {
+    const { showClose, keep, onCloseClick } = this.props;
+    if (showClose) {
+      if (!keep) {
+        return (
+          <Tooltip title={"删除"}>
+            <Icon type={"close"} onClick={() => onCloseClick(item)} />
+          </Tooltip>
+        );
+      } else {
+        return (
+          <Tooltip title={"取消收藏"}>
+            <Icon type={"close"} onClick={() => onCloseClick(item, keep)} />
+          </Tooltip>
+        );
+      }
+    }
+    return null;
+  };
   render() {
-    const {
-      onCloseClick,
-      showClose,
-      feed,
-      global,
-      cardLoading,
-      newFollow,
-      cancelFollow,
-    } = this.props;
+    const { feed, global, cardLoading } = this.props;
     const popProps = {
       ...global,
       cardLoading,
-      newFollow,
-      cancelFollow
+      newFollow: this.newFollow,
+      cancelFollow: this.cancelFollow
     };
     const { visible, feedId } = this.state;
     return (
@@ -283,26 +336,30 @@ class FeedList extends React.Component {
         renderItem={item => (
           <div>
             <List.Item
-              style={{backgroundColor:"#fff",marginBottom:"5px",padding:"24px"}}
+              style={{
+                backgroundColor: "#fff",
+                marginBottom: "5px",
+                padding: "24px"
+              }}
               key={item.feedId}
               actions={[
                 <this.IconText
                   type="star-o"
                   value="收藏"
                   feedId={item.feedId}
-                  onClick={this.handleKeepChange.bind(this, item.feedId)}
+                  onClick={() => this.handleKeepChange(item.feedId)}
                 />,
                 <this.IconText
                   type="like-o"
                   value="喜欢"
                   feedId={item.feedId}
-                  onClick={this.handleLikeChange.bind(this, item.feedId)}
+                  onClick={() => this.handleLikeChange(item.feedId)}
                 />,
                 <this.IconText
                   type="message"
                   value="回复"
                   feedId={item.feedId}
-                  onClick={this.showComment.bind(this, item.feedId)}
+                  onClick={() => this.showComment(item.feedId)}
                 />,
                 <span>
                   发布于
@@ -311,7 +368,7 @@ class FeedList extends React.Component {
                     : moment(item.releaseTime).format(dateFormat)}
                 </span>
               ]}
-              extra={showClose?<Icon type={"close"} onClick={()=>onCloseClick(item)} />:null}
+              extra={this.extra(item)}
             >
               <List.Item.Meta
                 avatar={
@@ -353,68 +410,4 @@ class FeedList extends React.Component {
   }
 }
 
-function mapStateToProps({ user, feed, global, loading }) {
-  return {
-    feed,
-    user,
-    global,
-    Loading: loading.effects["feed/getContentList"],
-    cardLoading: loading.effects["global/queryUser"]
-  };
-}
-function mapDispatchToProps(dispatch) {
-  return {
-    freshChatNotice: () => {
-      dispatch({
-        type: "user/getChatNotice"
-      });
-    },
-    cancelFollow: payload => {
-      dispatch({
-        type: "global/cancelFollow",
-        payload
-      });
-    },
-    newFollow: payload => {
-      dispatch({
-        type: "global/newFollow",
-        payload
-      });
-    },
-    queryUser: payload => {
-      dispatch({
-        type: "global/queryUser",
-        payload
-      });
-    },
-    freshFeed: payload => {
-      dispatch({
-        type: "feed/freshFeed",
-        payload
-      });
-    },
-    getContentListByTheme: payload => {
-      dispatch({
-        type: "feed/getContentListByTheme",
-        payload: payload
-      });
-    },
-    getContentList: () => {
-      dispatch({
-        type: "feed/getContentList"
-      });
-    },
-    postComment: payload => {
-      dispatch({
-        type: "details/postComment",
-        payload: payload
-      });
-    }
-  };
-}
-export default withRouter(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(FeedList)
-);
+export default FeedList;

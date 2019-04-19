@@ -5,41 +5,54 @@ export default {
   namespace: "personal",
   state: {},
   effects: {
-    *deleteFeed({payload},{call,put}){
-      yield call(api.fetch,"delete","/content/deleteFeed",payload)
+    *deleteFeed({ payload }, { call, put }) {
+      yield call(api.fetch, "delete", "/content/deleteFeed", payload);
       yield put({
         type: "feed/selectMyFeed"
       });
     },
-    *initPersonalCenter(action, { call, put }) {
-      const res = yield call(api.fetch, "get", "/follow/getFollow");
+    *initPersonalCenter({ payload }, { call, put }) {
       yield put({
-        type: "feed/selectMyFeed"
+        type: "getPersonalFollow",
+        payload
       });
-      if (res.code === 0) {
-        yield put({
-          type: "updateFollowNum",
-          payload: res.res
-        });
-      }
+      yield put({
+        type: "feed/selectPersonalFeed",
+        payload
+      });
     },
-    *getMyFollowing(action, { call, put }) {
-      const res = yield call(api.fetch, "get", "user/getMyFollowing");
-      if (res.code === 0) {
-        yield put({
-          type: "updateFollow",
-          payload: res.res
-        });
-      }
+    *getPersonalFollow({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "get",
+        `/follow/getPersonalFollow?uid=${payload}`
+      );
+      yield put({
+        type: "updateFollowNum",
+        payload: res.res
+      });
     },
-    *getMyFollower(action, { call, put }) {
-      const res = yield call(api.fetch, "get", "user/getMyFollower");
-      if (res.code === 0) {
-        yield put({
-          type: "updateFollow",
-          payload: res.res
-        });
-      }
+    *getPersonalFollowing({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "get",
+        `user/getPersonalFollowing?uid=${payload}`
+      );
+      yield put({
+        type: "updateFollow",
+        payload: res.res
+      });
+    },
+    *getPersonalFollower({ payload }, { call, put }) {
+      const res = yield call(
+        api.fetch,
+        "get",
+        `user/getPersonalFollower?uid=${payload}`
+      );
+      yield put({
+        type: "updateFollow",
+        payload: res.res
+      });
     },
     *sendMessage({ payload }, { call }) {
       yield call(sendMessage, payload);
