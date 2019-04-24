@@ -11,7 +11,7 @@ export default {
       const res = yield call(api.fetch, "get", url);
       yield put({
         type: "showContentDetails",
-        payload: res.res
+        payload: res
       });
     },
     *freshComment({ payload }, { call, put }) {
@@ -22,7 +22,7 @@ export default {
       );
       yield put({
         type: "changeCommentList",
-        payload: res.res
+        payload: res
       });
     },
     *postComment({ payload }, { call, put }) {
@@ -34,7 +34,7 @@ export default {
       );
       yield put({
         type: "changeCommentList",
-        payload: res.res
+        payload: res
       });
     },
     *postCommentReply({ payload }, { call, put }) {

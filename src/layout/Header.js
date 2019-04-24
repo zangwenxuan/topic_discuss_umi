@@ -161,6 +161,9 @@ class HeaderPanel extends Component {
     if (key === "login") {
       this.showLogin();
     }
+    if(key === "userinfo") {
+      router.push("/pc")
+    }
   };
 
   onItemClick = item => {
@@ -237,6 +240,9 @@ class HeaderPanel extends Component {
         type: "user/clearChatNotes"
       });
     }
+    if(type === "关注"){
+      router.push({pathname:`/personal/`,query:{key:"2"}})
+    }
   };
 
   getNotice = () => {
@@ -267,6 +273,12 @@ class HeaderPanel extends Component {
       chatNotice
     };
   };
+
+  changeLoginVisible = () =>{
+    this.setState({
+      loginVisible:false
+    })
+  }
 
   render() {
     const {
@@ -324,6 +336,7 @@ class HeaderPanel extends Component {
             this.setState({ loginVisible: false });
           }}
           visible={this.state.loginVisible}
+          changeVisible={this.changeLoginVisible}
         />
         <div className={styles.main}>
           <Link to="/">
@@ -370,7 +383,6 @@ class HeaderPanel extends Component {
                 onPopupVisibleChange={this.onNoticeVisibleChange}
               >
                 <NoticeIcon.Tab
-                  showClear
                   count={unreadSubscribeNotice.length}
                   list={subscribeNotice}
                   title="关注"

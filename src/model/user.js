@@ -11,7 +11,7 @@ export default {
   effects: {
     *register({ payload }, { call, put }) {
       const res = yield call(request.fetch, "post", "/user/register", payload);
-      if (!!res.res) {
+      if (!!res) {
         yield put({
           type: "getCurrentUser"
         });
@@ -19,7 +19,7 @@ export default {
           type: "updateCaptchaStatus",
           payload: "ok"
         });
-        localStorage.setItem("token", res.res);
+        localStorage.setItem("token", res);
         yield put(routerRedux.replace("/"));
       } else {
         yield put({
@@ -44,7 +44,7 @@ export default {
       );
       yield put({
         type: "updateEmailStatus",
-        payload: res.res ? "ok" : "error"
+        payload: res ? "ok" : "error"
       });
     },
     *checkName({ payload }, { call, put }) {
@@ -55,7 +55,7 @@ export default {
       );
       yield put({
         type: "updateNameStatus",
-        payload: res.res ? "ok" : "error"
+        payload: res ? "ok" : "error"
       });
     },
     *clearChatNotes(action, { call, put }) {
@@ -77,7 +77,7 @@ export default {
       const res = yield call(request.fetch, "get", "/chat/getChatNotice");
       yield put({
         type: "freshChatNotice",
-        payload: res.res
+        payload: res
       });
     },
     *deleteChatNote({ payload }, { call, put }) {
@@ -109,12 +109,12 @@ export default {
       });
       yield put({
         type: "freshNotice",
-        payload: res.res
+        payload: res
       });
     },
     *checkUser({ payload }, { call, put }) {
       const res = yield call(request.fetch, "POST", "/user/check", payload);
-      if (!!res.res) {
+      if (!!res) {
         yield put({
           type: "getCurrentUser"
         });
@@ -122,8 +122,26 @@ export default {
           type: "updateLoginState",
           payload: { status: "ok" }
         });
-        localStorage.setItem("token", res.res);
+        localStorage.setItem("token", res);
         yield put(routerRedux.replace("/"));
+      } else {
+        yield put({
+          type: "updateLoginState",
+          payload: { status: "error" }
+        });
+      }
+    },
+    *loginWithoutChangePage({payload},{call,put}){
+      const res = yield call(request.fetch, "POST", "/user/check", payload);
+      if (!!res) {
+        yield put({
+          type: "getCurrentUser"
+        });
+        yield put({
+          type: "updateLoginState",
+          payload: { status: "ok" }
+        });
+        localStorage.setItem("token", res);
       } else {
         yield put({
           type: "updateLoginState",
@@ -135,10 +153,10 @@ export default {
       const res = yield call(request.fetch, "get", "user/getCurrentUser");
       yield put({
         type: "updateCurrentUser",
-        payload: res.res
+        payload: res
       });
       sessionStorage.setItem("isLogin", JSON.stringify(true));
-    }
+    },
   },
   reducers: {
     updateCurrentUser(state, { payload }) {

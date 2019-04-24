@@ -1,37 +1,42 @@
 import React, { Component } from "react";
-import { List, Avatar, Popover, Button, Spin } from "antd";
+import { List, Avatar, Popover, Button, Spin, Divider } from "antd";
 import { connect } from "dva";
 import Link from "umi/link";
 import PersonalCard from "../PersonalCard";
 import styles from "./index.less";
 
-@connect(({ global, loading, personal }) => ({
+@connect(({ global, loading }) => ({
   global,
-  personal,
   cardLoading: loading.effects["global/queryUser"]
 }))
 class UserList extends Component {
   state = {
-    userList: undefined
+    userList: undefined,
+    listLen: 0
   };
+  static defaultProps={
+    follower: false
+  }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (prevProps.personal.userList !== this.props.personal.userList) {
-      const { userList } = this.props.personal;
+    const { data } = this.props;
+    if (!!data && prevProps.data !== data) {
       this.setState({
-        userList: userList.map(({ followed, user }) => ({ ...user, followed }))
+        userList: data.map(({ followed, user }) => ({ ...user, followed })),
+        listLen: data.length
       });
     }
   }
 
   cancelFollow = payload => {
-    let { userList } = this.state;
+    let { userList, listLen } = this.state;
     this.setState({
       userList: userList.map(({ followed, ...u }) =>
         u.uid === payload.master
           ? { followed: false, ...u }
           : { followed, ...u }
-      )
+      ),
+      listLen: listLen - 1
     });
     const { dispatch } = this.props;
     dispatch({
@@ -40,11 +45,12 @@ class UserList extends Component {
     });
   };
   newFollow = payload => {
-    let { userList } = this.state;
+    let { userList, listLen } = this.state;
     this.setState({
       userList: userList.map(({ followed, ...u }) =>
         u.uid === payload.master ? { followed: true, ...u } : { followed, ...u }
-      )
+      ),
+      listLen: listLen + 1
     });
     const { dispatch } = this.props;
     dispatch({
@@ -92,9 +98,8 @@ class UserList extends Component {
     );
   };
   render() {
-    const { userList } = this.state;
-    console.log(userList);
-    const { global, cardLoading } = this.props;
+    const { userList, listLen } = this.state;
+    const { global, cardLoading, follower, loading } = this.props;
     const popProps = {
       ...global,
       cardLoading,
@@ -103,6 +108,8 @@ class UserList extends Component {
     };
     return (
       <div>
+        <Spin spinning={loading}>
+        <Divider orientation="left">{follower?`粉丝数：${listLen}`:`关注数：${listLen}`}</Divider>
         <List
           size={"large"}
           className={styles.list}
@@ -125,6 +132,7 @@ class UserList extends Component {
                     }
                     content={<PersonalCard {...item} {...popProps} />}
                   >
+                    <Link to={`/personal/${item.uid}`}>
                     <Avatar
                       size={50}
                       src={
@@ -132,15 +140,16 @@ class UserList extends Component {
                           ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
                           : `http://localhost:8080/pic/${item.avatar}`
                       }
-                    />
+                    /></Link>
                   </Popover>
                 }
-                title={<span>{item.nickname}</span>}
+                title={<Link to={`/personal/${item.uid}`}><span>{item.nickname}</span></Link>}
                 description={"Ta还没有填写简介。。。。。。"}
               />
             </List.Item>
           )}
         />
+        </Spin>
       </div>
     );
   }

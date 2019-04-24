@@ -1,4 +1,4 @@
-import api from "../../utils/requests";
+import api from "../../../utils/requests";
 export default {
   namespace: "feed",
   state: {
@@ -13,7 +13,7 @@ export default {
       );
       yield put({
         type: "showContentList",
-        payload: res.res
+        payload: res
       });
     },
     *selectPersonalFeed({ payload }, { call, put }) {
@@ -24,7 +24,7 @@ export default {
       );
       yield put({
         type: "showContentList",
-        payload: res.res
+        payload: res
       });
     },
     *selectPersonalKeep({ payload }, { call, put }) {
@@ -35,11 +35,8 @@ export default {
       );
       yield put({
         type: "showContentList",
-        payload: res.res
+        payload: res
       });
-    },
-    *freshFeed({ payload }, { call }) {
-      yield call(api.fetch, "post", "/content/freshFeed", payload);
     },
     *like({ payload }, { call, put }) {
       yield call(api.fetch, "post", "/content/like", payload);
@@ -58,7 +55,7 @@ export default {
       const res = yield call(api.fetch, "get", url);
       yield put({
         type: "showContentList",
-        payload: res.res
+        payload: res
       });
     },
     *getContentList({ payload }, { call, put }) {
@@ -66,7 +63,7 @@ export default {
       const res = yield call(api.fetch, "get", url);
       yield put({
         type: "showContentList",
-        payload: res.res
+        payload: res
       });
     }
   },
@@ -82,7 +79,6 @@ export default {
       } = payload;
       return {
         ...state,
-        payload,
         contentList,
         keepList,
         keepNum,
@@ -93,6 +89,9 @@ export default {
     },
     showThemeContentList(state, { payload }) {
       return { ...state, contentList: payload };
+    },
+    clear(state, action) {
+      return { contentList: [] };
     }
   }
 };

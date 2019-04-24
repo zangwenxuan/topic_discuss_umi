@@ -27,7 +27,6 @@ class PicturesWall extends React.Component {
   }
 
   handleChange = ({ file, fileList }) => {
-    console.log(file)
     this.props.onPicChange(fileList);
     return this.setState({fileList})
   };

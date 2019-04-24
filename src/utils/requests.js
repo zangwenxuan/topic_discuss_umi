@@ -1,5 +1,5 @@
 import fetch from "dva/fetch";
-import router from 'umi/router'
+import router from "umi/router";
 /*import downloadjs from "downloadjs";*/
 const BASE_URL = "/api";
 
@@ -18,9 +18,9 @@ function parseJSON(response) {
 }
 
 function checkCode(response) {
-  const { code, error, trace } = response;
+  const { code, error, trace, res } = response;
   if (code === 0) {
-    return response;
+    return res;
   }
   const err = new Error(error);
   err.code = code;
@@ -47,18 +47,25 @@ const request = {
       .then(checkStatus)
       .then(parseJSON)
       .then(checkCode)
-      .catch(e =>{
-        if(e.code === 404){
-          router.push('/exception/404')
-          return
+      .catch(e => {
+        if (e.code === 401) {
+          // @HACK
+          /* eslint-disable no-underscore-dangle */
+          window.g_app._store.dispatch({
+            type: 'login/logout',
+          });
+          return;
         }
-        if(e.code === 500){
-          router.push('/exception/500')
-          return
+        if (e.code === 404) {
+          router.push("/exception/404");
+          return;
         }
-        if(e.code === 403){
-          router.push('/exception/403')
-          return
+        if (e.code === 500) {
+          router.push("/exception/500");
+          return;
+        }
+        if (e.code === 403) {
+          router.push("/exception/403");
         }
       });
   },

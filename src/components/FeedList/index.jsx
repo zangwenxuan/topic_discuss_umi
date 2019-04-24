@@ -1,8 +1,19 @@
 import React from "react";
-import { Avatar, Icon, List, message, Popover, Tag, Tooltip } from "antd";
+import {
+  Avatar,
+  Icon,
+  List,
+  message,
+  Popover,
+  Tag,
+  Tooltip,
+  Spin,
+  Skeleton
+} from "antd";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
 import moment from "moment";
+import classNames from "classnames";
 import "moment/locale/zh-cn";
 import Link from "umi/link";
 import router from "umi/router";
@@ -14,8 +25,7 @@ import { connect } from "dva";
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
 
-@connect(({ user, feed, global, loading }) => ({
-  feed,
+@connect(({ user, global, loading }) => ({
   user,
   global,
   Loading: loading.effects["feed/getContentList"],
@@ -34,23 +44,24 @@ class FeedList extends React.Component {
     likeNum: [],
     messageNum: []
   };
+
   static defaultProps = {
     keep: false,
     showClose: false,
     clickItem: false
   };
+
   componentDidMount() {
     const { feed } = this.props;
     this.setState({
       ...feed
     });
   }
+
   shouldComponentUpdate(nextProps, nextState, nextContext) {
-    if (nextProps.feed === this.props.feed && nextState === this.state && nextProps.showClose === this.props.showClose) {
-      return false;
-    }
-    return true;
+    return !(nextProps === this.props && nextState === this.state);
   }
+
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.feed !== this.props.feed) {
       const {
@@ -114,15 +125,17 @@ class FeedList extends React.Component {
       </span>
     );
   };
+
   showComment = id => {
     this.setState({
       visible: true,
       feedId: id
     });
   };
+
   handleLikeChange = feedId => {
-    if(!sessionStorage.getItem("isLogin")){
-      return
+    if (!sessionStorage.getItem("isLogin")) {
+      return;
     }
     const { dispatch } = this.props;
     const { likeList, likeNum } = this.state;
@@ -160,9 +173,10 @@ class FeedList extends React.Component {
       payload: { feedId }
     });
   };
+
   handleKeepChange = feedId => {
-    if(!sessionStorage.getItem("isLogin")){
-      return
+    if (!sessionStorage.getItem("isLogin")) {
+      return;
     }
     const { dispatch } = this.props;
     const { keepList, keepNum } = this.state;
@@ -200,11 +214,13 @@ class FeedList extends React.Component {
       payload: { feedId }
     });
   };
+
   onChange = e => {
     this.setState({
       commentValue: e.target.value
     });
   };
+
   randomColor = () => {
     const colorItem = [
       "0",
@@ -232,9 +248,10 @@ class FeedList extends React.Component {
     }
     return color;
   };
+
   showTags = ({ themeList }) => {
     const tags = themeList.map((t, index) => (
-      <Link to={`/content/${t}`} key={index}>
+      <Link to={`/index?tab=${t}`} key={index}>
         <Tag className={styles.tag} color={this.randomColor()}>
           {t}
         </Tag>
@@ -247,6 +264,7 @@ class FeedList extends React.Component {
       </div>
     );
   };
+
   submit = value => {
     const { dispatch } = this.props;
     const payload = {
@@ -265,6 +283,7 @@ class FeedList extends React.Component {
     });
     message.success("评论发送成功！");
   };
+
   queryUser = (visible, authorId) => {
     if (visible) {
       const { dispatch } = this.props;
@@ -274,6 +293,7 @@ class FeedList extends React.Component {
       });
     }
   };
+
   newFollow = payload => {
     const { dispatch } = this.props;
     dispatch({
@@ -281,6 +301,7 @@ class FeedList extends React.Component {
       payload
     });
   };
+
   cancelFollow = payload => {
     const { dispatch } = this.props;
     dispatch({
@@ -288,6 +309,7 @@ class FeedList extends React.Component {
       payload
     });
   };
+
   extra = item => {
     const { showClose, keep, onCloseClick } = this.props;
     if (showClose) {
@@ -307,8 +329,10 @@ class FeedList extends React.Component {
     }
     return null;
   };
+
   render() {
-    const { feed, global, cardLoading } = this.props;
+    const { feed = {}, global, cardLoading, listLoading } = this.props;
+    const { contentList = [] } = feed;
     const popProps = {
       ...global,
       cardLoading,
@@ -316,96 +340,106 @@ class FeedList extends React.Component {
       cancelFollow: this.cancelFollow
     };
     const { visible, feedId } = this.state;
+    let listClass;
+    contentList.length !== 0
+      ? (listClass = classNames(styles.list))
+      : (listClass = classNames(styles.nullList));
     return (
-      <List
-        className={styles.list}
-        itemLayout="vertical"
-        size="large"
-        pagination={{
-          onChange: page => {
-            console.log(page);
-          },
-          pageSize: 10
-        }}
-        dataSource={feed.contentList}
-        footer={
-          <div>
-            <b>ant design</b> footer part
-          </div>
-        }
-        renderItem={item => (
-          <div>
-            <List.Item
-              style={{
-                backgroundColor: "#fff",
-                marginBottom: "5px",
-                padding: "24px"
-              }}
-              key={item.feedId}
-              actions={[
-                <this.IconText
-                  type="star-o"
-                  value="收藏"
-                  feedId={item.feedId}
-                  onClick={() => this.handleKeepChange(item.feedId)}
-                />,
-                <this.IconText
-                  type="like-o"
-                  value="喜欢"
-                  feedId={item.feedId}
-                  onClick={() => this.handleLikeChange(item.feedId)}
-                />,
-                <this.IconText
-                  type="message"
-                  value="回复"
-                  feedId={item.feedId}
-                  onClick={() => this.showComment(item.feedId)}
-                />,
-                <span>
-                  发布于
-                  {moment().subtract(1, "days") < item.releaseTime
-                    ? moment(item.releaseTime).fromNow()
-                    : moment(item.releaseTime).format(dateFormat)}
-                </span>
-              ]}
-              extra={this.extra(item)}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Popover
-                    onVisibleChange={visible =>
-                      this.queryUser(visible, item.authorId)
+      <Spin spinning={!!listLoading}>
+        <List
+          className={listClass}
+          itemLayout="vertical"
+          size="large"
+          pagination={{
+            onChange: page => {
+              console.log(page);
+            },
+            pageSize: 10,
+            hideOnSinglePage: true
+          }}
+          dataSource={contentList}
+          renderItem={item => (
+            <div>
+              <List.Item
+                style={{
+                  backgroundColor: "#fff",
+                  marginBottom: "5px",
+                  padding: "24px"
+                }}
+                key={item.feedId}
+                actions={[
+                  <this.IconText
+                    type="star-o"
+                    value="收藏"
+                    feedId={item.feedId}
+                    onClick={() => this.handleKeepChange(item.feedId)}
+                  />,
+                  <this.IconText
+                    type="like-o"
+                    value="喜欢"
+                    feedId={item.feedId}
+                    onClick={() => this.handleLikeChange(item.feedId)}
+                  />,
+                  <this.IconText
+                    type="message"
+                    value="回复"
+                    feedId={item.feedId}
+                    onClick={() => this.showComment(item.feedId)}
+                  />,
+                  <span>
+                    发布于
+                    {moment().subtract(1, "days") < item.releaseTime
+                      ? moment(item.releaseTime).fromNow()
+                      : moment(item.releaseTime).format(dateFormat)}
+                  </span>
+                ]}
+                extra={this.extra(item)}
+              >
+                <Skeleton loading={!!listLoading}>
+                  <List.Item.Meta
+                    avatar={
+                      <Popover
+                        onVisibleChange={visible =>
+                          this.queryUser(visible, item.authorId)
+                        }
+                        content={<PersonalCard {...item} {...popProps} />}
+                      >
+                        <Link to={`/personal/${item.authorId}`}>
+                          <Avatar
+                            size={40}
+                            src={
+                              item.avatar == null
+                                ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                                : `http://localhost:8080/pic/${item.avatar}`
+                            }
+                          />
+                        </Link>
+                      </Popover>
                     }
-                    content={<PersonalCard {...item} {...popProps} />}
-                  >
-                    <Avatar
-                      size={40}
-                      src={
-                        item.avatar == null
-                          ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
-                          : `http://localhost:8080/pic/${item.avatar}`
-                      }
-                    />
-                  </Popover>
-                }
-                title={<span>{item.nickname}</span>}
-                description={this.showTags(item)}
-              />
-              <Link to={`/details/${item.feedId}`}>
-                <font color="black" size="4" style={{ marginLeft: "50px" }}>
-                  {item.content}
-                </font>
-              </Link>
-              <Zmage imageUrls={item.picList} />
-            </List.Item>
-            {visible && feedId === item.feedId ? (
-              <Editor onChange={this.onChange} onSubmit={this.submit} />
-            ) : (
-              <div />
-            )}
-          </div>
-        )}
-      />
+                    title={
+                      <Link to={`/personal/${item.authorId}`}>
+                        <span>{item.nickname}</span>
+                      </Link>
+                    }
+                    description={this.showTags(item)}
+                  />
+                  <Link to={`/details/${item.feedId}`}>
+                    <font color="black" size="4" style={{ marginLeft: "50px" }}>
+                      {item.content}
+                    </font>
+                  </Link>
+                  <Zmage imageUrls={item.picList} />
+                </Skeleton>
+              </List.Item>
+              {visible && feedId === item.feedId ? (
+                <Editor onChange={this.onChange} onSubmit={this.submit} />
+              ) : (
+                <div />
+              )}
+            </div>
+          )}
+        />
+      </Spin>
     );
   }
 }

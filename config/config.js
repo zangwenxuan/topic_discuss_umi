@@ -23,7 +23,7 @@ export default {
       path: "/",
       component: "../layout",
       routes: [
-        { path: "/", redirect: "/content" },
+        { path: "/", redirect: "/index" },
         {
           path: "/login",
           component: "Login/Login"
@@ -54,15 +54,31 @@ export default {
           ]
         },
         { path: "/test", component: "InfiniteListExample/InfiniteListExample" },
-        { path: "/personal/:uid", component: "PersonalCenter/PersonalCenter" },
-        { path: "/personal", component: "PersonalCenter/PersonalCenter" },
+        { path: "/personal/:uid", component: "PersonalSpace/PersonalSpace" },
+        { path: "/personal", component: "PersonalSpace/PersonalSpace" },
+        {path: "/pc",component: "PersonalCenter/PersonalCenter"},
+        { path: "/pc/:uid",
+          component: "PersonalCenter/PersonalCenter",
+          routes: [
+            {path:"/pc/:uid/",component: "PersonalCenter/AccountInfo"},
+            {path:"/pc/:uid/release",component: "PersonalCenter/PersonalFeed"},
+            {path:"/pc/:uid/keep",component: "PersonalCenter/PersonalKeep"},
+            {path:"/pc/:uid/follower",component: "PersonalCenter/Follower"},
+            {path:"/pc/:uid/following",component: "PersonalCenter/Following"},
+          ]
+        },
         {
           path: "/chatRom/:uid",
           component: "ChatRom/ChatRom",
           authority: "user"
         },
-        { path: "/content", component: "Content/Content" },
-        { path: "/content/:themeName", component: "Content/Content" },
+        { path: "/index", component: "Content/Content",
+        routes:[
+          {path: "/index/",component: "Content/indexFeed"},
+          {path: "/index/subscribe",component: "Content/SubscribeFeed"}
+          ]
+        },
+        /*{ path: "/content/:themeName", component: "Content/Content" },*/
         { path: "/details/:feedId", component: "Details/Details" },
         {component: '404'}
       ]

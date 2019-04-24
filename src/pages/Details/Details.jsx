@@ -52,7 +52,7 @@ class Details extends Component {
       window.scrollTo(0, 0);
     }
     if (prevProps.details !== this.props.details) {
-      const {
+        const {
         isLiked,
         isKeep,
         likeNum,

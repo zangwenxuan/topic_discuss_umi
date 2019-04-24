@@ -1,59 +1,190 @@
 import React, { Component } from "react";
-import { Avatar, Collapse, Card } from "antd";
+import { Avatar, Collapse, Card, Layout, Menu, Tabs, Icon } from "antd";
 import { connect } from "dva";
+import router from "umi/router";
 
 import styles from "./index.less";
-import LoginModal from "../../components/LoginModal"
+import LoginModal from "../../components/LoginModal";
 import EditorFeed from "../../components/EditorFeed";
-import FeedList from "../../components/FeedList";
+import List from "../../components/FeedList";
 import Tags from "../../components/Tag";
+import { Sticky, StickyContainer } from "react-sticky";
 
 const Panel = Collapse.Panel;
 const Meta = Card.Meta;
+const TabPane = Tabs.TabPane;
+const { Header, Content } = Layout;
 
-@connect(({ feed }) => ({ feed }))
+const renderTabBar = (props, DefaultTabBar) => (
+  <Sticky bottomOffset={80}>
+    {({ style }) => (
+      <DefaultTabBar
+        closable={true}
+        {...props}
+        style={{ ...style, zIndex: 1, background: "#fff" }}
+      />
+    )}
+  </Sticky>
+);
+
+@connect(({ user, feed, indexFeed, loading }) => ({
+  user,
+  feed,
+  indexFeed,
+  loading: loading.effects["indexFeed/selectFeed"]
+}))
 class ContentPanel extends Component {
   state = {
     themeName: "",
-    loginVisible: false
+    loginVisible: false,
+    activeKey: "index",
+    tabList: [],
+    isLogin: false
   };
 
   componentDidMount = () => {
-    const { match:{params}, dispatch } = this.props;
-    if (!params.themeName) {
+    const {
+      user: { currentUser },
+      location: { query },
+      dispatch
+    } = this.props;
+    this.setState({
+      isLogin: !!currentUser
+    });
+    if (!query.key) {
       dispatch({
-        type: "feed/getContentList"
+        type: "indexFeed/selectIndex"
       });
     } else {
-      dispatch({
-        type: "feed/getContentListByTheme",
-        payload: params.themeName
-      });
-      this.setState({
-        themeName: params.themeName
-      });
+      this.handleTabChange(query.key);
     }
   };
 
   componentDidUpdate = prevProps => {
-    const { match, dispatch } = this.props;
-    const { themeName } = this.state;
-    const { params } = match;
-    if (params.themeName && themeName !== params.themeName) {
-      dispatch({
-        type: "feed/getContentListByTheme",
-        payload: params.themeName
-      });
+    const {
+      user: { currentUser },
+      location: { query }
+    } = this.props;
+    const { activeKey } = this.state;
+    if (prevProps.user.currentUser !== currentUser) {
       this.setState({
-        themeName: params.themeName
+        isLogin: !!currentUser
       });
+    }
+    if (!!query.tab && query.tab !== activeKey) {
+      this.handleTabChange(query.tab);
+    }
+    if (!query.tab && activeKey !== "index") {
+      this.handleTabChange("index");
     }
   };
 
-  render() {
+  handleTabChange = tab => {
+    const { dispatch } = this.props;
+    this.setState({
+      activeKey: tab
+    });
+    if (tab === "index") {
+      dispatch({
+        type: "indexFeed/selectIndex"
+      });
+      return;
+    }
+    if (tab === "subscribe") {
+      dispatch({
+        type: "indexFeed/selectSubscribe"
+      });
+      return;
+    }
+    this.addTab(tab);
+  };
+
+  handleTabClick = key => {
+    if (key === "index") {
+      router.push("/index");
+      return;
+    }
+    if (key === "subscribe") {
+      router.push({ pathname: "/index", query: { tab: "subscribe" } });
+    }
+  };
+
+  addTab = themName => {
+    const { dispatch } = this.props;
+    let { tabList } = this.state;
+    const isTabExits = tabList.some(pane => pane.key === themName);
+    if (!isTabExits) {
+      this.setState({
+        tabList: tabList.concat({
+          title: themName,
+          key: themName
+        })
+      });
+    }
+    dispatch({
+      type: "indexFeed/selectByTheme",
+      payload: themName
+    });
+  };
+
+  removeTab = key => {
+    let activeKey = this.state.activeKey;
+    console.log(activeKey)
+    let lastIndex;
+    this.state.tabList.forEach((pane, i) => {
+      if (pane.key === key) {
+        lastIndex = i - 1;
+      }
+    });
+    const tabList = this.state.tabList.filter(pane => pane.key !== key);
+    if (tabList.length && activeKey === key) {
+      if (lastIndex >= 0) {
+        activeKey = tabList[lastIndex].key;
+      } else {
+        activeKey = tabList[0].key;
+      }
+    }
+    if (tabList.length === 0) {
+      activeKey = "index";
+    }
+    console.log(activeKey)
+    this.setState({ tabList});
+    router.push({ pathname: "/index", query: { tab: activeKey } });
+  };
+
+  handleClick = key => {
+    if (key === "index") {
+      router.push("/index");
+      return;
+    }
+    if (key === "subscribe") {
+      router.push({ pathname: "/index", query: { tab: "subscribe" } });
+      return;
+    }
+    router.push({ pathname: "/index", query: { tab: key } });
+  }
+
+  CloseIcon = key => {
     return (
       <div>
-        <LoginModal visible={this.state.loginVisible} onCancel={()=>this.setState({loginVisible:false})}/>
+        <span onClick={()=>this.handleClick(key)}>{key}</span>
+        <Icon
+          onClick={() => this.removeTab(key)}
+          className={styles.icon}
+          type={"close"}
+        />
+      </div>
+    );
+  };
+  render() {
+    const { indexFeed, loading } = this.props;
+    const { activeKey, isLogin, tabList } = this.state;
+    return (
+      <div>
+        <LoginModal
+          visible={this.state.loginVisible}
+          onCancel={() => this.setState({ loginVisible: false })}
+        />
         <div className={styles.card}>
           <Card
             bordered={false}
@@ -83,7 +214,22 @@ class ContentPanel extends Component {
             <EditorFeed />
           </Panel>
         </Collapse>
-        <FeedList />
+        <StickyContainer>
+          <Tabs
+            activeKey={activeKey}
+            onChange={key => this.handleTabClick(key)}
+            renderTabBar={renderTabBar}
+            className={styles.tabs}
+            style={{ marginTop: "1px" }}
+          >
+            {isLogin && <TabPane tab={"订阅"} key={"subscribe"} />}
+            <TabPane tab={"推荐"} key={"index"} />
+            {tabList.map(pane => (
+              <TabPane tab={this.CloseIcon(pane.title)} key={pane.key} />
+            ))}
+          </Tabs>
+        </StickyContainer>
+        <List feed={indexFeed} listLoading={loading} />
       </div>
     );
   }

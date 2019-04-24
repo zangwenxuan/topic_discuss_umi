@@ -7,15 +7,19 @@ import Login from "../LoginForm";
 
 @connect(({ user, loading }) => ({
   user,
-  loginSubmitting: loading.effects["user/checkUser"]
+  loginSubmitting: loading.effects["user/loginWithoutChangePage"]
 }))
 class LoginModal extends Component {
+  static defaultProps = {
+    changeVisible: () => {}
+  };
   handleLoginSubmit = user => {
-    const { dispatch } = this.props;
+    const { dispatch, changeVisible } = this.props;
     dispatch({
-      type: "user/checkUser",
+      type: "user/loginWithoutChangePage",
       payload: user
     });
+    changeVisible();
   };
   render() {
     const {
@@ -47,4 +51,4 @@ class LoginModal extends Component {
   }
 }
 
-export default LoginModal
+export default LoginModal;

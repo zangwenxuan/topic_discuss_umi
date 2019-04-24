@@ -1,0 +1,114 @@
+.main {
+  margin: 0 auto;
+  .card {
+    /*overflow: hidden;*/
+    margin: 10% auto;
+    .content {
+      margin: auto;
+      width: 80%;
+      height: 40%;
+
+      .cover {
+        margin: 0 auto;
+        position: relative;
+        .span {
+          position: absolute;
+          top: 0;
+          left: 0;
+          text-align: center;
+          line-height: 315px;
+          height: 100%;
+          width: 100%;
+          opacity: 0;
+          overflow: hidden;
+          background: rgba(0, 0, 0, 0.6);
+          transition: opacity .2s;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+      :global {
+        .ant-card-body {
+          padding: 12px;
+
+          .ant-card-meta-avatar {
+            margin: -60px auto;
+          }
+
+          .ant-card-meta-detail {
+            margin-left: 80px;
+          }
+        }
+      }
+
+      .avatarBox {
+        margin: 0 auto;
+        height: 80px;
+        width: 80px;
+        position: relative;
+
+        .avatar {
+        }
+
+        .span {
+          position: absolute;
+          top: 0;
+          left: 0;
+          text-align: center;
+          line-height: 80px;
+          height: 80px;
+          width: 80px;
+          opacity: 0;
+          border-radius: 50%;
+          overflow: hidden;
+          background: rgba(0, 0, 0, 0.6);
+          transition: opacity .2s;
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+
+      :global {
+        .ant-input {
+          border: 0;
+          background: transparent;
+
+          &:hover {
+            border: 1px solid #d9d9d9;
+            background: rgba(180, 180, 180, 0.27);
+          }
+
+          &:focus {
+            border: 1px solid #d9d9d9;
+          }
+        }
+      }
+    }
+  }
+}
+.modal{
+  :global{
+    .ant-modal{
+      width:200px;
+      top:250px;
+    }
+  }
+}
+.img{
+  display: table;
+  width: 104px;
+  height: 104px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  text-align: center;
+  vertical-align: top;
+  background-color: #fafafa;
+  border: dashed;
+  border-radius: 4px;
+}
+
+

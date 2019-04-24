@@ -11,14 +11,14 @@ export default {
       });
       yield put({
         type: "showMessage",
-        payload: res.res
+        payload: res
       });
     },
     *sendMessage({ payload }, { call, put }) {
       const res = yield call(api.fetch, "post", "/chat/sendMsg", payload);
       yield put({
         type: "showMessage",
-        payload: res.res
+        payload: res
       });
     }
   },

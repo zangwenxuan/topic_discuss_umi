@@ -7,7 +7,7 @@ export default {
       const res = yield call(api.fetch, "post", "/follow/newFollow", payload);
       yield put({
         type: "changeStatus",
-        payload: res.res
+        payload: res
       });
     },
     *cancelFollow({ payload }, { call, put }) {
@@ -19,7 +19,7 @@ export default {
       );
       yield put({
         type: "changeStatus",
-        payload: res.res
+        payload: res
       });
     },
     *queryUser({ payload }, { call, put }) {
@@ -30,7 +30,7 @@ export default {
       );
       yield put({
         type: "showUserCard",
-        payload: res.res
+        payload: res
       });
     }
   },
