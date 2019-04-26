@@ -4,9 +4,35 @@
 .card{
   :global{
     .ant-card{
+      width:375px;
+      .ant-card-body {
+        padding: 12px;
+        .ant-card-meta-avatar {
+          margin: -30px auto;
+        }
+        .ant-card-meta-detail {
+          margin-left: 80px;
+          .ant-card-meta-description{
+            color:black;
+          }
+        }
+      }
       .ant-card-actions{
         background: white !important;
       }
+      .ant-card-cover{
+        width:375px;
+        height: 120px;
+        overflow: hidden;
+      }
     }
   }
+}
+.signature{
+  color:#99a2aa;
+  word-wrap:break-word;
+  word-break: break-all;
+  line-height: 16px;
+  margin-left:80px;
+  margin-top:11px
 }

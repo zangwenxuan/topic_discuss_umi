@@ -1,5 +1,5 @@
 import React from "react";
-import { Tooltip, Avatar, Card, Button, Spin } from "antd";
+import { Tooltip, Avatar, Card, Button, Spin, Ellipsis, Divider } from "antd";
 import styles from "./index.less";
 import Link from "umi/link";
 
@@ -9,8 +9,11 @@ const personalCard = ({
   authorId,
   uid,
   avatar,
+  signature,
+  cover,
   nickname,
   followerNum,
+  followingNum,
   feedNum,
   cardLoading,
   isFollowed,
@@ -38,19 +41,30 @@ const personalCard = ({
     <Spin spinning={!!cardLoading}>
       <div className={styles.card}>
         <Card
+          cover={
+            <img
+              style={{ width: "100%" }}
+              alt="example"
+              src={
+                cover === null
+                  ? "http://localhost:8080/pic/cover.jpg"
+                  : `http://localhost:8080/pic/${cover}`
+              }
+            />
+          }
           bordered={false}
           actions={[
             isFollowed ? buttonFalse : buttonTrue,
-            <Link to={`/chatRom/${uid || authorId}`}>
+            <Link to={`/chat/${uid || authorId}`}>
               <Button>私信</Button>
             </Link>
           ]}
         >
           <Meta
             avatar={
-              <Link to={`/personal/${uid || authorId}`}>
+              <Link to={`/pc/${uid || authorId}`}>
                 <Avatar
-                  size={100}
+                  size={50}
                   src={
                     avatar == null
                       ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
@@ -59,9 +73,25 @@ const personalCard = ({
                 />
               </Link>
             }
-            title={<Link to={`/personal/${uid || authorId}`}>{nickname}</Link>}
-            description={`粉丝:${followerNum || 0} | 发帖数:${feedNum || 0}`}
+            title={
+              <Link
+                style={{ color: "#fb7299" }}
+                to={`/pc/${uid || authorId}`}
+              >
+                {nickname}
+              </Link>
+            }
+            description={
+              <div>
+                <span>{`发帖：${feedNum || 0}`}</span>
+                <Divider type="vertical" />
+                <span>{`粉丝：${followerNum || 0}`}</span>
+                <Divider type="vertical" />
+                <span>{`关注：${followingNum || 0}`}</span>
+              </div>
+            }
           />
+          <p className={styles.signature}>{signature}</p>
         </Card>
       </div>
     </Spin>

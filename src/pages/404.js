@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'umi/link';
 import Exception from '@/components/Exception';
 
-export default () => (
+const Exception404 = () => (
   <Exception
     type="404"
     linkElement={Link}
@@ -10,3 +10,5 @@ export default () => (
     backText={'回到主页'}
   />
 );
+
+export default 404

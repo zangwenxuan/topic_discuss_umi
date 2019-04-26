@@ -12,11 +12,11 @@ export default {
     });
     return imageList;
   },
-  getImg(list){
+  getImg(list) {
     let imageList = [];
-    list.forEach(l=>{
-      imageList.push(require(`../Assets/${l}`))
-    })
+    list.forEach(l => {
+      imageList.push(require(`../Assets/${l}`));
+    });
     return imageList;
   }
 };

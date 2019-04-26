@@ -52,24 +52,9 @@ export default {
   },
   reducers: {
     showContentDetails(state, { payload }) {
-      const {
-        isLiked,
-        isKeep,
-        contentDetails,
-        commentUserList,
-        likeNum,
-        keepNum,
-        messageNum
-      } = payload;
       return {
         ...state,
-        contentDetails,
-        commentUserList,
-        isKeep,
-        isLiked,
-        likeNum,
-        keepNum,
-        messageNum
+        ...payload
       };
     },
     changeCommentList(state, { payload }) {

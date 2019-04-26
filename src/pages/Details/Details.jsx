@@ -7,6 +7,7 @@ import {
   Tooltip
 } from "antd";
 import { connect } from "dva";
+import router from "umi/router"
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
 import Link from "umi/link";
@@ -36,9 +37,13 @@ class Details extends Component {
   };
 
   componentDidMount() {
+    console.log("DidMount")
     window.scrollTo(0, 0);
-    const { match, dispatch } = this.props;
-    const { params } = match;
+    const { match:{params}, dispatch } = this.props;
+    if(!params.feedId){
+      router.replace("/index")
+      return
+    }
     dispatch({
       type: "details/getContentDetails",
       payload: params.feedId
@@ -66,11 +71,10 @@ class Details extends Component {
         keepNum,
         messageNum
       });
-      console.log(this.state);
     }
     const { match, dispatch } = this.props;
     const { params } = match;
-    if (params.feedId && params.feedId !== this.state.feedId) {
+    if (!!params.feedId && params.feedId !== this.state.feedId) {
       dispatch({
         type: "details/getContentDetails",
         payload: params.feedId

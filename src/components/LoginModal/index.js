@@ -13,13 +13,20 @@ class LoginModal extends Component {
   static defaultProps = {
     changeVisible: () => {}
   };
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const {changeVisible,user:{currentUser}} = this.props
+    if(!!currentUser && prevProps.user.currentUser !== currentUser){
+      changeVisible();
+    }
+  }
+
   handleLoginSubmit = user => {
     const { dispatch, changeVisible } = this.props;
     dispatch({
       type: "user/loginWithoutChangePage",
       payload: user
     });
-    changeVisible();
   };
   render() {
     const {

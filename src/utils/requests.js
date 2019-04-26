@@ -52,12 +52,12 @@ const request = {
           // @HACK
           /* eslint-disable no-underscore-dangle */
           window.g_app._store.dispatch({
-            type: 'login/logout',
+            type: "login/logout"
           });
           return;
         }
         if (e.code === 404) {
-          router.push("/exception/404");
+          router.replace("/exception/404");
           return;
         }
         if (e.code === 500) {

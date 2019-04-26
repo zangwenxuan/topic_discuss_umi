@@ -71,6 +71,10 @@ class ContentPanel extends Component {
         isLogin: !!currentUser
       });
     }
+    if(!currentUser&&!!query.tab && query.tab ===  "subscribe"){
+      router.push("/index");
+      return
+    }
     if (!!query.tab && query.tab !== activeKey) {
       this.handleTabChange(query.tab);
     }
@@ -80,7 +84,10 @@ class ContentPanel extends Component {
   };
 
   handleTabChange = tab => {
-    const { dispatch } = this.props;
+    const {
+      dispatch,
+      user: { currentUser }
+    } = this.props;
     this.setState({
       activeKey: tab
     });
@@ -91,6 +98,10 @@ class ContentPanel extends Component {
       return;
     }
     if (tab === "subscribe") {
+      if (!currentUser) {
+        router.push("/login");
+        return;
+      }
       dispatch({
         type: "indexFeed/selectSubscribe"
       });
@@ -100,6 +111,10 @@ class ContentPanel extends Component {
   };
 
   handleTabClick = key => {
+    const { isLogin } = this.state;
+    if (!isLogin) {
+      this.props.showLogin();
+    }
     if (key === "index") {
       router.push("/index");
       return;
@@ -129,7 +144,7 @@ class ContentPanel extends Component {
 
   removeTab = key => {
     let activeKey = this.state.activeKey;
-    console.log(activeKey)
+    console.log(activeKey);
     let lastIndex;
     this.state.tabList.forEach((pane, i) => {
       if (pane.key === key) {
@@ -147,8 +162,8 @@ class ContentPanel extends Component {
     if (tabList.length === 0) {
       activeKey = "index";
     }
-    console.log(activeKey)
-    this.setState({ tabList});
+    console.log(activeKey);
+    this.setState({ tabList });
     router.push({ pathname: "/index", query: { tab: activeKey } });
   };
 
@@ -162,12 +177,12 @@ class ContentPanel extends Component {
       return;
     }
     router.push({ pathname: "/index", query: { tab: key } });
-  }
+  };
 
   CloseIcon = key => {
     return (
       <div>
-        <span onClick={()=>this.handleClick(key)}>{key}</span>
+        <span onClick={() => this.handleClick(key)}>{key}</span>
         <Icon
           onClick={() => this.removeTab(key)}
           className={styles.icon}

@@ -24,6 +24,7 @@ export default {
       component: "../layout",
       routes: [
         { path: "/", redirect: "/index" },
+        { path: "/index", component: "Content/Content"},
         {
           path: "/login",
           component: "Login/Login"
@@ -53,10 +54,7 @@ export default {
             }
           ]
         },
-        { path: "/test", component: "InfiniteListExample/InfiniteListExample" },
-        { path: "/personal/:uid", component: "PersonalSpace/PersonalSpace" },
-        { path: "/personal", component: "PersonalSpace/PersonalSpace" },
-        {path: "/pc",component: "PersonalCenter/PersonalCenter"},
+        { path: "/pc",component: "PersonalCenter/PersonalCenter"},
         { path: "/pc/:uid",
           component: "PersonalCenter/PersonalCenter",
           routes: [
@@ -67,20 +65,12 @@ export default {
             {path:"/pc/:uid/following",component: "PersonalCenter/Following"},
           ]
         },
-        {
-          path: "/chatRom/:uid",
-          component: "ChatRom/ChatRom",
-          authority: "user"
-        },
-        { path: "/index", component: "Content/Content",
-        routes:[
-          {path: "/index/",component: "Content/indexFeed"},
-          {path: "/index/subscribe",component: "Content/SubscribeFeed"}
-          ]
-        },
-        /*{ path: "/content/:themeName", component: "Content/Content" },*/
+        {path: "/chat",component: "ChatRom/ChatRom"},
+        {path: "/chat/:uid",component: "ChatRom/ChatRom"},
+        { path: "/details", component: "Details/Details" },
         { path: "/details/:feedId", component: "Details/Details" },
-        {component: '404'}
+        { path: "/setpassword",component: "SafeSetting/SetPassword"},
+        {component: './Exception/404'}
       ]
     }
   ],

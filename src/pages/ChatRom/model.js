@@ -24,7 +24,7 @@ export default {
   },
   reducers: {
     showMessage(state, { payload }) {
-      return { ...state, msgList: payload.msgList, guest: payload.guest };
+      return { ...state, ...payload };
     }
   }
 };

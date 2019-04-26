@@ -34,31 +34,45 @@ class MsgPopPage extends Component {
     }
   }
 
-  componentWillMount() {}
-
   componentDidMount = () => {
-    const isLogin = sessionStorage.getItem("isLogin");
+    const isLogin = localStorage.getItem("token");
     if (!isLogin) {
       router.push("/login");
       return;
     }
     const {
       dispatch,
+      match:{params},
+      user: { currentUser }
+    } = this.props;
+    if(!params.uid){
+      router.replace("/")
+      return
+    }
+    if (!!currentUser) {
+      this.webSocket(currentUser.uid, params.uid);
+      dispatch({
+        type: "chatMsg/getAllMessage",
+        payload: params.uid
+      });
+      this.setState({
+        guestId: params.uid,
+        currentUser
+      });
+    }
+  };
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const { guestId, ws } = this.state;
+    const {
+      dispatch,
       match,
       user: { currentUser }
     } = this.props;
     const { params } = match;
-    this.webSocket(currentUser.uid, params.uid);
-    dispatch({
-      type: "chatMsg/getAllMessage",
-      payload: params.uid
-    });
-    this.setState({
-      guestId: params.uid,
-      currentUser
-    });
-  };
-  componentDidUpdate(prevProps, prevState, snapshot) {
+    const isLogin = localStorage.getItem("token");
+    if (!isLogin) {
+      router.push("/login");
+    }
     if (prevProps.chatMsg.guest !== this.props.chatMsg.guest) {
       const { guest } = this.props.chatMsg;
       this.setState({
@@ -72,9 +86,6 @@ class MsgPopPage extends Component {
         msgList
       });
     }
-    const { guestId, ws } = this.state;
-    const { dispatch, match } = this.props;
-    const { params } = match;
     if (guestId && guestId !== params.uid) {
       if (ws) {
         ws.close();

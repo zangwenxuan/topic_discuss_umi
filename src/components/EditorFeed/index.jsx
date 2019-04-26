@@ -5,14 +5,14 @@ import { connect } from "dva";
 import styles from "./index.less";
 import { withRouter } from "react-router";
 
-import Tags from "../../components/Tag"
+import Tags from "../../components/Tag";
 
 const TextArea = Input.TextArea;
 
 class EditorFeed extends React.Component {
   state = {
     fileList: [],
-    tagList:[],
+    tagList: [],
     value: ""
   };
   updatePic = fileList => {
@@ -20,17 +20,16 @@ class EditorFeed extends React.Component {
       fileList
     });
   };
-  onPicChange = fileList =>{
+  onPicChange = fileList => {
     this.setState({
       fileList
-    })
-  }
+    });
+  };
   tagChange = list => {
     this.setState({
-      tagList:list
-    })
-
-  }
+      tagList: list
+    });
+  };
   onChange = e => {
     this.setState({
       value: e.target.value
@@ -40,30 +39,30 @@ class EditorFeed extends React.Component {
     const { user, submit } = this.props;
     const { value, fileList, tagList } = this.state;
     const payload = {
-      pic: fileList.map(f=>f.response.res),
-      content:value,
-      themeList:tagList
+      pic: fileList.map(f => f.response.res),
+      content: value,
+      themeList: tagList
     };
     submit(payload);
     this.setState({
-      value:'',
-      fileList:[],
-      tagList:[]
-    })
+      value: "",
+      fileList: [],
+      tagList: []
+    });
     this.refs.tags.clear();
     this.refs.pic.clear();
   };
   handleInputConfirm = () => {
     const state = this.state;
-    const {changeTag} = this.props
+    const { changeTag } = this.props;
     const inputValue = state.inputValue;
     let tags = state.tags;
     let colors = state.colors;
     if (inputValue && tags.indexOf(inputValue) === -1) {
       tags = [...tags, inputValue];
-      colors.push(this.randomColor())
+      colors.push(this.randomColor());
     }
-    changeTag(tags)
+    changeTag(tags);
     this.setState({
       tags,
       inputVisible: false,
@@ -75,7 +74,7 @@ class EditorFeed extends React.Component {
     const { value } = this.state;
     return (
       <div className={styles.main}>
-        <Tags showTitle changeTag={this.tagChange} ref="tags"/>
+        <Tags showTitle changeTag={this.tagChange} ref="tags" />
         <div className={styles.editor}>
           <Row gutter={6}>
             <Col span={22}>
@@ -97,7 +96,11 @@ class EditorFeed extends React.Component {
             </Col>
           </Row>
         </div>
-        <PicturesWall onPicChange={this.onPicChange} className={styles.picture} ref="pic" />
+        <PicturesWall
+          onPicChange={this.onPicChange}
+          className={styles.picture}
+          ref="pic"
+        />
       </div>
     );
   }
@@ -112,7 +115,7 @@ function mapStateToProps({ user, sendFeed, loading }) {
 }
 function mapDispatchToProps(dispatch) {
   return {
-    submit: payload=> {
+    submit: payload => {
       dispatch({
         type: "feed/submit",
         payload

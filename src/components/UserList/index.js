@@ -14,9 +14,9 @@ class UserList extends Component {
     userList: undefined,
     listLen: 0
   };
-  static defaultProps={
+  static defaultProps = {
     follower: false
-  }
+  };
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { data } = this.props;
@@ -109,46 +109,54 @@ class UserList extends Component {
     return (
       <div>
         <Spin spinning={loading}>
-        <Divider orientation="left">{follower?`粉丝数：${listLen}`:`关注数：${listLen}`}</Divider>
-        <List
-          size={"large"}
-          className={styles.list}
-          dataSource={userList}
-          renderItem={item => (
-            <List.Item
-              actions={[
-                <this.AttentionButton uid={item.uid} />,
-                <Link to={`/chatRom/${item.uid}`}>
-                  <Button>私信</Button>
-                </Link>
-              ]}
-            >
-              <List.Item.Meta
-                avatar={
-                  <Popover
-                    placement={"rightTop"}
-                    onVisibleChange={visible =>
-                      this.queryUser(visible, item.uid)
-                    }
-                    content={<PersonalCard {...item} {...popProps} />}
-                  >
-                    <Link to={`/personal/${item.uid}`}>
-                    <Avatar
-                      size={50}
-                      src={
-                        item.avatar == null
-                          ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
-                          : `http://localhost:8080/pic/${item.avatar}`
+          <Divider orientation="left">
+            {follower ? `粉丝数：${listLen}` : `关注数：${listLen}`}
+          </Divider>
+          <List
+            size={"large"}
+            className={styles.list}
+            dataSource={userList}
+            renderItem={item => (
+              <List.Item
+                actions={[
+                  <this.AttentionButton uid={item.uid} />,
+                  <Link to={`/chatRom/${item.uid}`}>
+                    <Button>私信</Button>
+                  </Link>
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Popover
+                      overlayClassName={styles.pop}
+                      placement={"rightTop"}
+                      onVisibleChange={visible =>
+                        this.queryUser(visible, item.uid)
                       }
-                    /></Link>
-                  </Popover>
-                }
-                title={<Link to={`/personal/${item.uid}`}><span>{item.nickname}</span></Link>}
-                description={"Ta还没有填写简介。。。。。。"}
-              />
-            </List.Item>
-          )}
-        />
+                      content={<PersonalCard {...item} {...popProps} />}
+                    >
+                      <Link to={`/personal/${item.uid}`}>
+                        <Avatar
+                          size={50}
+                          src={
+                            item.avatar == null
+                              ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                              : `http://localhost:8080/pic/${item.avatar}`
+                          }
+                        />
+                      </Link>
+                    </Popover>
+                  }
+                  title={
+                    <Link to={`/personal/${item.uid}`}>
+                      <span>{item.nickname}</span>
+                    </Link>
+                  }
+                  description={item.signature || "Ta还没有填写简介。。。。。。"}
+                />
+              </List.Item>
+            )}
+          />
         </Spin>
       </div>
     );

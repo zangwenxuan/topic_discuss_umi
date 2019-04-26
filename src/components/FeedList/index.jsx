@@ -257,12 +257,7 @@ class FeedList extends React.Component {
         </Tag>
       </Link>
     ));
-    return (
-      <div>
-        <h5 style={{ marginRight: 8, display: "inline" }}>标签:</h5>
-        {tags}
-      </div>
-    );
+    return <div>{tags}</div>;
   };
 
   submit = value => {
@@ -399,12 +394,13 @@ class FeedList extends React.Component {
                   <List.Item.Meta
                     avatar={
                       <Popover
+                        overlayClassName={styles.pop}
                         onVisibleChange={visible =>
                           this.queryUser(visible, item.authorId)
                         }
                         content={<PersonalCard {...item} {...popProps} />}
                       >
-                        <Link to={`/personal/${item.authorId}`}>
+                        <Link to={`/pc/${item.authorId}`}>
                           <Avatar
                             size={40}
                             src={
@@ -417,8 +413,10 @@ class FeedList extends React.Component {
                       </Popover>
                     }
                     title={
-                      <Link to={`/personal/${item.authorId}`}>
-                        <span>{item.nickname}</span>
+                      <Link to={`/pc/${item.authorId}`}>
+                        <span style={{ color: "#fb7299" }}>
+                          {item.nickname}
+                        </span>
                       </Link>
                     }
                     description={this.showTags(item)}

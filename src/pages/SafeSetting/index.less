@@ -1,0 +1,14 @@
+.step{
+  height:400px;
+  margin-top: 50%;
+  border-right:1px solid #e8e8e8;
+  :global {
+    .ant-steps-item{
+      margin-bottom: 100px;
+      .ant-steps-item-tail::after {
+        height: 100px;
+        width: 2px
+      }
+    }
+  }
+}

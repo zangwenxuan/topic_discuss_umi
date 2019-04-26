@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Layout, Menu, Icon, Avatar, Dropdown } from "antd";
+import { Layout, Menu, Icon, Avatar, Row, Col } from "antd";
 import Link from "umi/link";
 import router from "umi/router";
 import styles from "./Header.less";
@@ -145,7 +145,7 @@ class HeaderPanel extends Component {
   handleMenuClick = ({ key }) => {
     const { dispatch } = this.props;
     if (key === "userCenter") {
-      router.push("/personal");
+      router.push("/pc");
     }
     if (key === "logout") {
       const { ws } = this.state;
@@ -161,11 +161,22 @@ class HeaderPanel extends Component {
     if (key === "login") {
       this.showLogin();
     }
-    if(key === "userinfo") {
-      router.push("/pc")
+    if (key === "userinfo") {
+      router.push("/pc");
     }
   };
-
+  logout = () => {
+    const { dispatch } = this.props;
+    const { ws } = this.state;
+    ws.close();
+    this.setState({
+      user: undefined,
+      ws: undefined
+    });
+    dispatch({
+      type: "user/logout"
+    });
+  };
   onItemClick = item => {
     const { itemClick } = this.state;
     if (!itemClick) {
@@ -240,8 +251,8 @@ class HeaderPanel extends Component {
         type: "user/clearChatNotes"
       });
     }
-    if(type === "关注"){
-      router.push({pathname:`/personal/`,query:{key:"2"}})
+    if (type === "关注") {
+      router.push({ pathname: `/personal/`, query: { key: "2" } });
     }
   };
 
@@ -274,11 +285,71 @@ class HeaderPanel extends Component {
     };
   };
 
-  changeLoginVisible = () =>{
+  changeLoginVisible = () => {
     this.setState({
-      loginVisible:false
-    })
-  }
+      loginVisible: false
+    });
+  };
+
+  guestPop = () => {
+    return (
+      <div className={styles.guestCard}>
+        <Icon
+          className={styles.icon}
+          rotate={45}
+          style={{ fontSize: "60px" }}
+          type={"double-left"}
+        />
+        点击登录
+      </div>
+    );
+  };
+
+  personalCard = ({ nickname }) => {
+    return (
+      <div style={{ paddingTop: "30px" }} className={styles.card}>
+        <p style={{ textAlign: "center" }}>{nickname}</p>
+        <div className={styles.headerMenu}>
+          <Row>
+            <Col span={12}>
+              <Link to={"/pc"}>
+                <p style={{ textAlign: "center" }}>
+                  <Icon type={"user"} />
+                  个人中心
+                </p>
+              </Link>
+            </Col>
+            <Col span={12}>
+              <a>
+                <p style={{ textAlign: "center" }}>
+                  <Icon type={"user"} />
+                  更换邮箱
+                </p>
+              </a>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={12}>
+              <a>
+                <p style={{ textAlign: "center" }}>
+                  <Icon type={"user"} />
+                  修改密码
+                </p>
+              </a>
+            </Col>
+            <Col span={12}>
+              <a onClick={this.logout}>
+                <p style={{ textAlign: "center" }}>
+                  <Icon type={"user"} />
+                  退出登录
+                </p>
+              </a>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    );
+  };
 
   render() {
     const {
@@ -292,65 +363,15 @@ class HeaderPanel extends Component {
       user: { currentUser = {} }
     } = this.props;
     const { nickname = null, avatar = null } = currentUser;
-    const menu = (
-      <Menu
-        className={styles.menu}
-        selectedKeys={[]}
-        onClick={this.handleMenuClick}
-      >
-        <Menu.Item key="userCenter">
-          <Icon type="user" />
-          个人中心
-        </Menu.Item>
-        <Menu.Item key="userinfo">
-          <Icon type="setting" />
-          个人设置
-        </Menu.Item>
-        <Menu.Item key="triggerError">
-          <Icon type="close-circle" />
-          触发报错
-        </Menu.Item>
-        <Menu.Divider />
-        <Menu.Item key="logout">
-          <Icon type="logout" />
-          退出登录
-        </Menu.Item>
-      </Menu>
-    );
-    const logoutMenu = (
-      <Menu
-        className={styles.menu}
-        selectedKeys={[]}
-        onClick={this.handleMenuClick}
-      >
-        <Menu.Item key="login">
-          <Icon type="user" />
-          登录
-        </Menu.Item>
-      </Menu>
-    );
     return (
       <Header className={styles.header}>
-        <LoginModal
-          onCancel={() => {
-            this.setState({ loginVisible: false });
-          }}
-          visible={this.state.loginVisible}
-          changeVisible={this.changeLoginVisible}
-        />
         <div className={styles.main}>
           <Link to="/">
-            <span className={`${styles.action} ${styles.account}`}>
+            <span className={`${styles.action}`}>
               <Icon
                 type="home"
                 style={{ fontSize: "24px", color: "#08c", marginLeft: "10px" }}
               />
-            </span>
-            <span
-              className={`${styles.action} ${styles.account}`}
-              style={{ marginLeft: "30px" }}
-            >
-              推荐
             </span>
           </Link>
           <div className={styles.right}>
@@ -411,21 +432,35 @@ class HeaderPanel extends Component {
                 />
               </NoticeIcon>
             ) : null}
-            <Dropdown overlay={nickname ? menu : logoutMenu}>
-              <span className={`${styles.action} ${styles.account}`}>
-                <Avatar
-                  size="small"
-                  className={styles.avatar}
-                  alt="avatar"
-                  src={
-                    avatar == null
-                      ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
-                      : `http://localhost:8080/pic/${avatar}`
-                  }
-                />
-                <span>{nickname || ""}</span>
+            <span className={styles.popCard}>
+              <span className={` ${styles.account}`}>
+                <Link to={"/pc"}>
+                  <Avatar
+                    size="small"
+                    className={styles.avatar}
+                    alt="avatar"
+                    src={
+                      avatar == null
+                        ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                        : `http://localhost:8080/pic/${avatar}`
+                    }
+                  />
+                  {nickname ? null : (
+                    <a
+                      style={{
+                        color: "#fff",
+                        margin: "0 auto",
+                        fontSize: "small"
+                      }}
+                      className={styles.spanLogin}
+                    >
+                      点击登录
+                    </a>
+                  )}
+                </Link>
               </span>
-            </Dropdown>
+              {!!nickname ? this.personalCard(currentUser) : null}
+            </span>
           </div>
         </div>
       </Header>

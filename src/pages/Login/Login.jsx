@@ -12,13 +12,13 @@ import { connect } from "dva";
 class Login extends Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (!!this.props.user.currentUser && this.props.user.currentUser !== prevProps.user.currentUser) {
-      router.push("/content");
+      router.replace("/");
     }
   }
 
   componentDidMount() {
     if (!!this.props.user.currentUser) {
-      router.push("/content");
+      router.replace("/");
     }
   }
 

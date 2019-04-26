@@ -6,9 +6,10 @@
   margin: 0 auto;
   width: 1000px;
 }
+
 .header {
   position: relative;
-  height: @layout-header-height;
+  height: 42px;
   padding: 0;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
@@ -19,10 +20,17 @@
     background: @pro-header-hover-bg;
   }
 }
+
 .right {
   float: right;
   height: 100%;
   overflow: hidden;
+  .search {
+    padding: 0 12px;
+    &:hover {
+      background: transparent;
+    }
+  }
   .action {
     display: inline-block;
     height: 100%;
@@ -34,26 +42,107 @@
       vertical-align: middle;
     }
     &:hover {
-      background: @pro-header-hover-bg;
+      /*background: @pro-header-hover-bg;*/
     }
     &:global(.opened) {
       background: @pro-header-hover-bg;
     }
   }
-  .search {
-    padding: 0 12px;
+  .popCard {
     &:hover {
-      background: transparent;
+      .guestCard{
+        display: block;
+      }
+      .card{
+        display: block;
+      }
+      .account {
+        .spanLogin {
+          width: 64px;
+          height: 64px;
+          opacity: 1;
+          vertical-align: center;
+          z-index: 3;
+          transition: 0.3s;
+        }
+      }
+      .avatar {
+       /* border: 3px dashed #434e59;
+        border-radius: 50% 50% 0 0/100% 100% 0 0;
+        border-bottom: none;*/
+        width: 64px;
+        height: 64px;
+        transition: 0.3s;
+        vertical-align: center;
+      }
     }
-  }
-  .account {
-    .avatar {
-      margin: ~'calc((@{layout-header-height} - 24px) / 2)' 0;
-      margin-right: 8px;
-      color: @primary-color;
-      vertical-align: top;
-      background: rgba(184, 196, 255, 0.85);
+    .guestCard{
+      padding-top: 20px;
+      display: none;
+      width: 260px;
+      top: 42px;
+      position: absolute;
+      background: transparent;
+      z-index: 1;
+      .icon{
+        margin-left: 100px;
+      }
+    }
+    .card {
+      padding-top: 30px;
+      border:3px dashed #434e59;
+      display: none;
+      width: 260px;
+      top: 42px;
+      position: absolute;
+      background: #fff;
+      z-index: 1;
+      .headerMenu{
+        border-top: 1px solid #e5e9ef;
+        padding: 10px 20px 40px 20px;
+      }
+    }
+    .account {
+      position: relative;
+      display: inline;
+      .avatar {
+        margin: 10px 0;
+        margin-right: 8px;
+        color: @primary-color;
+        vertical-align: top;
+        transition: 0.3s;
+        background: rgba(184, 196, 255, 0.85);
+        > img {
+          position: absolute;
+          z-index: 2;
+        }
+      }
+      .spanLogin {
+        position: absolute;
+        top:0;
+        right: 8px;
+        text-align: center;
+        line-height: 64px;
+        height: 32px;
+        width: 32px;
+        opacity: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.6);
+        transition:  .3s;
+       /* &:hover{
+          opacity: 1;
+          vertical-align: center;
+          z-index: 3;
+        }*/
+      }
     }
   }
 }
-
+.pop{
+  z-index: 1;
+  background: white;
+  width: 260px;
+  top:42px !important;
+  padding-top:0 !important;
+}
