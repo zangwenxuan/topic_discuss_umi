@@ -9,6 +9,10 @@
 }
 .tag{
   font-size: 15px;
+  &:hover{
+    background-color: gray !important;
+    color:#fff;
+  }
 }
 .text{
   text-emphasis-color: black;
@@ -17,6 +21,13 @@
   :global{
     .ant-popover-inner-content{
       padding:0;
+    }
+  }
+}
+.popTag{
+  :global{
+    .ant-popover-inner{
+      background-color: rgb(251, 255, 255);
     }
   }
 }

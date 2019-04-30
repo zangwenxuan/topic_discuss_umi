@@ -15,14 +15,17 @@ class LoginModal extends Component {
   };
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const {changeVisible,user:{currentUser}} = this.props
-    if(!!currentUser && prevProps.user.currentUser !== currentUser){
+    const {
+      changeVisible,
+      user: { currentUser }
+    } = this.props;
+    if (!!currentUser && prevProps.user.currentUser !== currentUser) {
       changeVisible();
     }
   }
 
   handleLoginSubmit = user => {
-    const { dispatch, changeVisible } = this.props;
+    const { dispatch } = this.props;
     dispatch({
       type: "user/loginWithoutChangePage",
       payload: user
@@ -48,11 +51,7 @@ class LoginModal extends Component {
         visible={visible}
         footer={false}
       >
-        <Login
-          status={status}
-          submitting={loginSubmitting}
-          onSubmit={this.handleLoginSubmit}
-        />
+        <Login />
       </Modal>
     );
   }

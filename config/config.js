@@ -24,7 +24,7 @@ export default {
       component: "../layout",
       routes: [
         { path: "/", redirect: "/index" },
-        { path: "/index", component: "Content/Content"},
+        { path: "/index", component: "Content/Content" },
         {
           path: "/login",
           component: "Login/Login"
@@ -54,23 +54,32 @@ export default {
             }
           ]
         },
-        { path: "/pc",component: "PersonalCenter/PersonalCenter"},
-        { path: "/pc/:uid",
+        { path: "/pc", component: "PersonalCenter/PersonalCenter" },
+        {
+          path: "/pc/:uid",
           component: "PersonalCenter/PersonalCenter",
           routes: [
-            {path:"/pc/:uid/",component: "PersonalCenter/AccountInfo"},
-            {path:"/pc/:uid/release",component: "PersonalCenter/PersonalFeed"},
-            {path:"/pc/:uid/keep",component: "PersonalCenter/PersonalKeep"},
-            {path:"/pc/:uid/follower",component: "PersonalCenter/Follower"},
-            {path:"/pc/:uid/following",component: "PersonalCenter/Following"},
+            { path: "/pc/:uid/", component: "PersonalCenter/AccountInfo" },
+            {
+              path: "/pc/:uid/release",
+              component: "PersonalCenter/PersonalFeed"
+            },
+            { path: "/pc/:uid/keep", component: "PersonalCenter/PersonalKeep" },
+            { path: "/pc/:uid/follower", component: "PersonalCenter/Follower" },
+            {
+              path: "/pc/:uid/following",
+              component: "PersonalCenter/Following"
+            }
           ]
         },
-        {path: "/chat",component: "ChatRom/ChatRom"},
-        {path: "/chat/:uid",component: "ChatRom/ChatRom"},
+        { path: "/chat", component: "ChatRom/ChatRom" },
+        { path: "/chat/:uid", component: "ChatRom/ChatRom" },
         { path: "/details", component: "Details/Details" },
         { path: "/details/:feedId", component: "Details/Details" },
-        { path: "/setpassword",component: "SafeSetting/SetPassword"},
-        {component: './Exception/404'}
+        { path: "/setpassword", component: "SetPassword/SetPassword" },
+        { path: "/bindmail", component: "BindMail/BindMail" },
+        { path: "/test", component: "test" },
+        { component: "./Exception/404" }
       ]
     }
   ],

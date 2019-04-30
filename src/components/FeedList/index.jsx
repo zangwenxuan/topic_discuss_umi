@@ -8,7 +8,8 @@ import {
   Tag,
   Tooltip,
   Spin,
-  Skeleton
+  Skeleton,
+  Button
 } from "antd";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
@@ -16,7 +17,6 @@ import moment from "moment";
 import classNames from "classnames";
 import "moment/locale/zh-cn";
 import Link from "umi/link";
-import router from "umi/router";
 
 import Editor from "../../components/Editor";
 import PersonalCard from "../../components/PersonalCard";
@@ -25,11 +25,11 @@ import { connect } from "dva";
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
 
-@connect(({ user, global, loading }) => ({
+@connect(({ user, globalFeed, loading }) => ({
   user,
-  global,
+  globalFeed,
   Loading: loading.effects["feed/getContentList"],
-  cardLoading: loading.effects["global/queryUser"]
+  cardLoading: loading.effects["globalFeed/queryUser"]
 }))
 class FeedList extends React.Component {
   state = {
@@ -48,7 +48,8 @@ class FeedList extends React.Component {
   static defaultProps = {
     keep: false,
     showClose: false,
-    clickItem: false
+    clickItem: false,
+    tagPop: ()=>{}
   };
 
   componentDidMount() {
@@ -127,8 +128,9 @@ class FeedList extends React.Component {
   };
 
   showComment = id => {
+    const {visible} = this.state
     this.setState({
-      visible: true,
+    visible: !visible,
       feedId: id
     });
   };
@@ -249,12 +251,27 @@ class FeedList extends React.Component {
     return color;
   };
 
+  insertTag = (e,title) => {
+    e.preventDefault();
+    const {dispatch} = this.props
+    dispatch({
+      type: "user/insertUserTheme",
+      payload: title
+    })
+  }
+
+  tagPop = (title) => {
+    return (<div ><a onClick={e=>this.insertTag(e,title)}><Icon type="plus" />添加到我的圈子</a></div>)
+  }
+
   showTags = ({ themeList }) => {
+      const {tagPop} = this.props
     const tags = themeList.map((t, index) => (
       <Link to={`/index?tab=${t}`} key={index}>
+        <Popover overlayClassName={styles.popTag} content={tagPop(t)}>
         <Tag className={styles.tag} color={this.randomColor()}>
           {t}
-        </Tag>
+        </Tag></Popover>
       </Link>
     ));
     return <div>{tags}</div>;
@@ -283,7 +300,7 @@ class FeedList extends React.Component {
     if (visible) {
       const { dispatch } = this.props;
       dispatch({
-        type: "global/queryUser",
+        type: "globalFeed/queryUser",
         payload: authorId
       });
     }
@@ -292,7 +309,7 @@ class FeedList extends React.Component {
   newFollow = payload => {
     const { dispatch } = this.props;
     dispatch({
-      type: "global/newFollow",
+      type: "globalFeed/newFollow",
       payload
     });
   };
@@ -300,7 +317,7 @@ class FeedList extends React.Component {
   cancelFollow = payload => {
     const { dispatch } = this.props;
     dispatch({
-      type: "global/cancelFollow",
+      type: "globalFeed/cancelFollow",
       payload
     });
   };
@@ -326,10 +343,11 @@ class FeedList extends React.Component {
   };
 
   render() {
-    const { feed = {}, global, cardLoading, listLoading } = this.props;
+    const { feed = {}, globalFeed, cardLoading, listLoading, user:{currentUser={}} } = this.props;
     const { contentList = [] } = feed;
     const popProps = {
-      ...global,
+      currentUid:currentUser.uid,
+      ...globalFeed,
       cardLoading,
       newFollow: this.newFollow,
       cancelFollow: this.cancelFollow

@@ -1,19 +1,60 @@
+.cardss{
+   margin-bottom:5px;
+   background-color:#fff;
+   height:130px;
+   display: flex;
+   :global{
+     .ant-card{
+       .ant-card-actions{
+         background: white !important;
+       }
+     }
+   }
+ }
 .card{
-  margin-bottom:5px;
-  background-color:#fff;
-  height:130px;
-  display: flex;
   :global{
     .ant-card{
+      background-color: #fff;
+      margin-left: 5px;
+      .ant-card-body {
+        padding: 12px;
+        .ant-card-meta-avatar {
+          margin: -25px auto;
+        }
+        .ant-card-meta-detail {
+          margin-left: 50px;
+          .ant-card-meta-description{
+            color:black;
+          }
+        }
+      }
       .ant-card-actions{
-      background: white !important;
+        background: white !important;
+        >li {
+          margin: 0 0;
+          >span >a >p {
+            margin: 0 0;
+          }
+        }
+      }
+      .ant-card-cover{
+        height: 120px;
+        overflow: hidden;
       }
     }
   }
 }
-.tag{
+.signature{
+  color:#99a2aa;
+  word-wrap:break-word;
+  word-break: break-all;
+  line-height: 16px;
+  margin-top:11px
+}
+.tags{
   width:100%;
   background-color: #dee6ec;
+  padding:10px;
 }
 .userCard{
   display: flex;
@@ -29,4 +70,32 @@
   text-align: center;
   text-transform: none;
   transform: translate(-50%, -50%);
+}
+.tab{
+  :global{
+    .ant-tabs-bar{
+      margin: 0 0 2px 0;
+    }
+
+  }
+}
+.tag{
+  font-size: 15px;
+  margin: 5px;
+  &:hover{
+    background-color: gray !important;
+    color:#fff;
+  }
+}
+.popTag{
+  :global{
+    .ant-popover-inner{
+      background-color: rgb(251, 255, 255);
+    }
+  }
+}
+:global{
+  .ant-back-top{
+    right: 30%;
+  }
 }

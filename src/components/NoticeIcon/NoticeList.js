@@ -38,7 +38,7 @@ function checkType(type) {
 function LinkContent({ item, onItemClick }) {
   if (item.type === 10) {
     return (
-      <Link to={`/chatRom/${item.uid}`} onClick={() => onItemClick(item)}>
+      <Link to={`/chat/${item.uid}`} onClick={() => onItemClick(item)}>
         <div className={styles.description} title={item.content}>
           <Ellipsis length={15}>{item.content}</Ellipsis>
         </div>

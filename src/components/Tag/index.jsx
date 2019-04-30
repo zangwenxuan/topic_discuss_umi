@@ -1,5 +1,5 @@
 import React from "react";
-import { Tag, Input, Tooltip, Icon } from "antd";
+import { Tag, Input, Tooltip, Icon, Popover } from "antd";
 import styles from "./index.less";
 
 export default class EditableTagGroup extends React.Component {
@@ -51,6 +51,8 @@ export default class EditableTagGroup extends React.Component {
     })
   }
 
+
+
   saveInputRef = input => (this.input = input);
 
   randomColor = () => {
@@ -94,7 +96,7 @@ export default class EditableTagGroup extends React.Component {
               color={colors[index]}
               className={styles.tag}
               key={tag}
-              closable={index !== 0}
+              closable={true}
               afterClose={() => this.handleClose(tag)}
             >
               {isLongTag ? `${tag.slice(0, 20)}...` : tag}

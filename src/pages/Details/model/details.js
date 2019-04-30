@@ -1,4 +1,4 @@
-import api from "../../utils/requests";
+import api from "../../../utils/requests";
 export default {
   namespace: "details",
   state: {},

@@ -6,7 +6,8 @@ export default {
     captchaAvailable: undefined,
     nameAvailable: undefined,
     status: undefined,
-    emailAvailable: undefined
+    emailAvailable: undefined,
+    loginModalVisible:undefined,
   },
   effects: {
     *register({ payload }, { call, put }) {
@@ -37,6 +38,9 @@ export default {
       });
     },
     *checkEmail({ payload }, { call, put }) {
+      yield put({
+        type: "clearEmailStatus"
+      });
       const res = yield call(
         request.fetch,
         "get",
@@ -131,7 +135,7 @@ export default {
         });
       }
     },
-    *loginWithoutChangePage({payload},{call,put}){
+    *loginWithoutChangePage({ payload }, { call, put }) {
       const res = yield call(request.fetch, "POST", "/user/check", payload);
       if (!!res) {
         yield put({
@@ -157,8 +161,40 @@ export default {
       });
       sessionStorage.setItem("isLogin", JSON.stringify(true));
     },
+    *addTag({ payload }, { call, put }) {
+      const res = yield call(request.fetch, "post", "user/tag/add", payload);
+      yield put({
+        type: "addTheme",
+        payload: res
+      });
+    },
+    *cancelTag({ payload }, { call, put }) {
+      const res = yield call(
+        request.fetch,
+        "delete",
+        "user/tag/cancel",
+        payload
+      );
+      yield put({
+        type: "cancelTheme",
+        payload: res
+      });
+    }
   },
   reducers: {
+    addTheme(state, { payload }) {
+      let { currentUser } = state;
+      currentUser.themeList = currentUser.themeList.concat(payload);
+      return { ...state, currentUser };
+    },
+    cancelTheme(state, { payload }) {
+      let { currentUser } = state;
+      currentUser.themeList = currentUser.themeList.filter(t => t !== payload);
+      return { ...state, currentUser };
+    },
+    clearEmailStatus(state, _) {
+      return { ...state, emailAvailable: undefined };
+    },
     updateCurrentUser(state, { payload }) {
       return { ...state, currentUser: payload };
     },

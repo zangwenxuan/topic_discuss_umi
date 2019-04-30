@@ -4,33 +4,42 @@ import Link from "umi/link";
 import { Button, Icon, Input } from "antd";
 
 import styles from "./index.less";
+import { connect } from "dva";
 
+@connect(({ user, loading }) => ({
+  user,
+  loginSubmitting: loading.effects["user/loginWithoutChangePage"]
+}))
 class LoginForm extends Component {
   handleSubmit = e => {
     e.preventDefault();
-    const { onSubmit } = this.props;
     this.props.form.validateFields((err, values) => {
       if (!err) {
         const user = { uid: values.userName, password: values.password };
-        onSubmit(user);
+        this.handleLoginSubmit(user);
       }
     });
   };
-  handleAlertClose = () => {
+  handleLoginSubmit = user => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "user/loginWithoutChangePage",
+      payload: user
+    });
+  };
 
-  }
   render() {
     const {
-      submitting,
+      loginSubmitting,
       form: { getFieldDecorator },
-      status
+      user: { status }
     } = this.props;
 
     return (
       <div>
         <p style={{ textAlign: "center", fontSize: "30px" }}>登录</p>
         <Form onSubmit={this.handleSubmit} className="login-form">
-          {status === "error" && !submitting && (
+          {status === "error" && !loginSubmitting && (
             <Alert
               style={{ marginBottom: 24 }}
               type={"error"}

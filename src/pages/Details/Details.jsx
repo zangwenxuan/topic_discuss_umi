@@ -12,6 +12,7 @@ import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
 import Link from "umi/link";
 
+import PersonalCard from "../../components/PersonalCard"
 import Editor from "../../components/Editor";
 import CommentList from "../../components/CommentList";
 import LoginModal from "../../components/LoginModal";
@@ -227,7 +228,7 @@ class Details extends Component {
       dataSource: commentUserList
     };
     return (
-      <div>
+      <div style={{width:"1000px",margin:"0 auto"}}>
         <LoginModal
           onCancel={() => {
             this.setState({ loginVisible: false });
@@ -264,7 +265,7 @@ class Details extends Component {
                 }
               />
             }
-            title={contentDetails.nickname}
+            title={<Link to={`/pc/${contentDetails.uid}`}>{contentDetails.nickname}</Link>}
             description={this.showTags(themeList)}
           />
           <font size="4" color="black" style={{ marginLeft: "45px" }}>

@@ -142,29 +142,6 @@ class HeaderPanel extends Component {
     }
   };
 
-  handleMenuClick = ({ key }) => {
-    const { dispatch } = this.props;
-    if (key === "userCenter") {
-      router.push("/pc");
-    }
-    if (key === "logout") {
-      const { ws } = this.state;
-      ws.close();
-      this.setState({
-        user: undefined,
-        ws: undefined
-      });
-      dispatch({
-        type: "user/logout"
-      });
-    }
-    if (key === "login") {
-      this.showLogin();
-    }
-    if (key === "userinfo") {
-      router.push("/pc");
-    }
-  };
   logout = () => {
     const { dispatch } = this.props;
     const { ws } = this.state;
@@ -183,7 +160,7 @@ class HeaderPanel extends Component {
       return;
     }
     if (item.type === 10) {
-      router.push(`/chatRom/${item.uid}`);
+      router.push(`/chat/${item.uid}`);
     } else if (item.type !== 4 && item.type !== -3) {
       router.push(`/details/${item.feedId}`);
     }
@@ -219,13 +196,6 @@ class HeaderPanel extends Component {
     return count;
   };
 
-  handleLoginSubmit = user => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: "user/checkUser",
-      payload: user
-    });
-  };
 
   onNoticeClear = type => {
     const { dispatch, chatNoticeClear } = this.props;
@@ -252,7 +222,7 @@ class HeaderPanel extends Component {
       });
     }
     if (type === "关注") {
-      router.push({ pathname: `/personal/`, query: { key: "2" } });
+      router.push(`/index?tab=subscribe`);
     }
   };
 
@@ -291,20 +261,6 @@ class HeaderPanel extends Component {
     });
   };
 
-  guestPop = () => {
-    return (
-      <div className={styles.guestCard}>
-        <Icon
-          className={styles.icon}
-          rotate={45}
-          style={{ fontSize: "60px" }}
-          type={"double-left"}
-        />
-        点击登录
-      </div>
-    );
-  };
-
   personalCard = ({ nickname }) => {
     return (
       <div style={{ paddingTop: "30px" }} className={styles.card}>
@@ -320,27 +276,27 @@ class HeaderPanel extends Component {
               </Link>
             </Col>
             <Col span={12}>
-              <a>
+              <Link to={"/bindmail"}>
                 <p style={{ textAlign: "center" }}>
-                  <Icon type={"user"} />
+                  <Icon type={"mail"} />
                   更换邮箱
                 </p>
-              </a>
+              </Link>
             </Col>
           </Row>
           <Row>
             <Col span={12}>
-              <a>
+              <Link to={"/setpassword"}>
                 <p style={{ textAlign: "center" }}>
-                  <Icon type={"user"} />
+                  <Icon type={"lock"} />
                   修改密码
                 </p>
-              </a>
+              </Link>
             </Col>
             <Col span={12}>
               <a onClick={this.logout}>
                 <p style={{ textAlign: "center" }}>
-                  <Icon type={"user"} />
+                  <Icon type={"logout"} />
                   退出登录
                 </p>
               </a>

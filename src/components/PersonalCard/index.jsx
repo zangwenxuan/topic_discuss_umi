@@ -6,6 +6,7 @@ import Link from "umi/link";
 const { Meta } = Card;
 
 const personalCard = ({
+  currentUid,
   authorId,
   uid,
   avatar,
@@ -20,8 +21,10 @@ const personalCard = ({
   newFollow,
   cancelFollow
 }) => {
+  const isSelf = currentUid === uid || currentUid === authorId;
   const buttonTrue = (
     <Button
+      disabled={isSelf}
       type="primary"
       onClick={newFollow.bind(this, { master: uid || authorId })}
     >
@@ -56,7 +59,7 @@ const personalCard = ({
           actions={[
             isFollowed ? buttonFalse : buttonTrue,
             <Link to={`/chat/${uid || authorId}`}>
-              <Button>私信</Button>
+              <Button disabled={isSelf}>私信</Button>
             </Link>
           ]}
         >
@@ -74,10 +77,7 @@ const personalCard = ({
               </Link>
             }
             title={
-              <Link
-                style={{ color: "#fb7299" }}
-                to={`/pc/${uid || authorId}`}
-              >
+              <Link style={{ color: "#fb7299" }} to={`/pc/${uid || authorId}`}>
                 {nickname}
               </Link>
             }

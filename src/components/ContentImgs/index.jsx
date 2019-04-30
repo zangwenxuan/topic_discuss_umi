@@ -7,9 +7,9 @@ import api from "../../utils/getImage";
 export default class ContentImgs extends Component {
   image_0 = () => <div className={styles.none} />;
   image_1 = list => (
-    <div className={styles.main}>
-      <Row gutter={1} className={styles.row}>
-        <Col span={18} offset={3}>
+    <div style={{height:"400px",overflow:"hidden",marginTop:"30px"}}>
+      <Row gutter={1} style={{marginTop:"1px",overflow:"hidden"}}>
+        <Col span={14} offset={3}>
           <Zmage
             className={styles.image}
             src={list[0]}
@@ -20,8 +20,8 @@ export default class ContentImgs extends Component {
     </div>
   );
   image_2 = list => (
-    <div className={styles.main}>
-      <Row gutter={1} className={styles.row}>
+    <div className={styles.main} >
+      <Row gutter={1} style={{maxHeight:"400px",marginTop:"1px",overflow:"hidden"}}>
         <Col span={9} offset={3}>
           <Zmage
             className={styles.image}

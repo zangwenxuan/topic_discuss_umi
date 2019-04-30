@@ -1,6 +1,6 @@
 import api from "../utils/requests";
 export default {
-  namespace: "global",
+  namespace: "globalFeed",
   state: {},
   effects: {
     *newFollow({ payload }, { call, put }) {

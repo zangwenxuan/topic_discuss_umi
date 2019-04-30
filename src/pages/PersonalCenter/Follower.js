@@ -25,7 +25,7 @@ class Follower extends Component {
   render() {
     const {
       follow: { followerList = [] },
-      loading
+      loading,
     } = this.props;
     return (
       <div>

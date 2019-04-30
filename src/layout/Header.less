@@ -4,7 +4,7 @@
 
 .main {
   margin: 0 auto;
-  width: 1000px;
+  width: 1200px;
 }
 
 .header {
@@ -42,7 +42,7 @@
       vertical-align: middle;
     }
     &:hover {
-      /*background: @pro-header-hover-bg;*/
+      background: @pro-header-hover-bg;
     }
     &:global(.opened) {
       background: @pro-header-hover-bg;
@@ -50,9 +50,6 @@
   }
   .popCard {
     &:hover {
-      .guestCard{
-        display: block;
-      }
       .card{
         display: block;
       }
@@ -76,18 +73,6 @@
         vertical-align: center;
       }
     }
-    .guestCard{
-      padding-top: 20px;
-      display: none;
-      width: 260px;
-      top: 42px;
-      position: absolute;
-      background: transparent;
-      z-index: 1;
-      .icon{
-        margin-left: 100px;
-      }
-    }
     .card {
       padding-top: 30px;
       border:3px dashed #434e59;
@@ -96,7 +81,7 @@
       top: 42px;
       position: absolute;
       background: #fff;
-      z-index: 1;
+      z-index: 2;
       .headerMenu{
         border-top: 1px solid #e5e9ef;
         padding: 10px 20px 40px 20px;
@@ -114,7 +99,7 @@
         background: rgba(184, 196, 255, 0.85);
         > img {
           position: absolute;
-          z-index: 2;
+          z-index: 3;
         }
       }
       .spanLogin {
@@ -138,11 +123,4 @@
       }
     }
   }
-}
-.pop{
-  z-index: 1;
-  background: white;
-  width: 260px;
-  top:42px !important;
-  padding-top:0 !important;
 }

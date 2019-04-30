@@ -5,8 +5,9 @@ import Link from "umi/link";
 import PersonalCard from "../PersonalCard";
 import styles from "./index.less";
 
-@connect(({ global, loading }) => ({
-  global,
+@connect(({user, globalFeed, loading }) => ({
+  user,
+  globalFeed,
   cardLoading: loading.effects["global/queryUser"]
 }))
 class UserList extends Component {
@@ -40,7 +41,7 @@ class UserList extends Component {
     });
     const { dispatch } = this.props;
     dispatch({
-      type: "global/cancelFollow",
+      type: "globalFeed/cancelFollow",
       payload
     });
   };
@@ -54,7 +55,7 @@ class UserList extends Component {
     });
     const { dispatch } = this.props;
     dispatch({
-      type: "global/newFollow",
+      type: "globalFeed/newFollow",
       payload
     });
   };
@@ -62,17 +63,10 @@ class UserList extends Component {
     if (visible) {
       const { dispatch } = this.props;
       dispatch({
-        type: "global/queryUser",
+        type: "globalFeed/queryUser",
         payload: authorId
       });
     }
-  };
-  freshFeed = payload => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: "feed/freshFeed",
-      payload
-    });
   };
   AttentionButton = ({ uid }) => {
     const { userList } = this.state;
@@ -99,9 +93,10 @@ class UserList extends Component {
   };
   render() {
     const { userList, listLen } = this.state;
-    const { global, cardLoading, follower, loading } = this.props;
+    const { globalFeed, cardLoading, follower, loading,user:{currentUser={}} } = this.props;
     const popProps = {
-      ...global,
+      currentUid:currentUser.uid,
+      ...globalFeed,
       cardLoading,
       newFollow: this.newFollow,
       cancelFollow: this.cancelFollow
@@ -110,7 +105,7 @@ class UserList extends Component {
       <div>
         <Spin spinning={loading}>
           <Divider orientation="left">
-            {follower ? `粉丝数：${listLen}` : `关注数：${listLen}`}
+            {follower ? `关注数：${listLen}` : `粉丝数：${listLen}`}
           </Divider>
           <List
             size={"large"}
@@ -120,7 +115,7 @@ class UserList extends Component {
               <List.Item
                 actions={[
                   <this.AttentionButton uid={item.uid} />,
-                  <Link to={`/chatRom/${item.uid}`}>
+                  <Link to={`/chat/${item.uid}`}>
                     <Button>私信</Button>
                   </Link>
                 ]}
@@ -135,7 +130,7 @@ class UserList extends Component {
                       }
                       content={<PersonalCard {...item} {...popProps} />}
                     >
-                      <Link to={`/personal/${item.uid}`}>
+                      <Link to={`/pc/${item.uid}`}>
                         <Avatar
                           size={50}
                           src={
@@ -148,7 +143,7 @@ class UserList extends Component {
                     </Popover>
                   }
                   title={
-                    <Link to={`/personal/${item.uid}`}>
+                    <Link to={`/pc/${item.uid}`}>
                       <span>{item.nickname}</span>
                     </Link>
                   }

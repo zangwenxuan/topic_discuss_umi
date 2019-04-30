@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { List, Avatar, Comment, Icon, Tooltip, Input, message } from "antd";
 import moment from "moment";
 import "moment/locale/zh-cn";
+import Link from "umi/link"
 import styles from "./index.less";
 import Editor from "../Editor";
 
@@ -67,7 +68,7 @@ export default class CommentList extends Component {
         avatar={
           <Avatar src={record.avatar==null?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${record.avatar}` }/>
         }
-        author={<a href="https://ant.design">{record.nickname}</a>}
+        author={<Link to={`/pc/${record.fromUserId}`}>{record.nickname}</Link>}
         content={record.comCon}
       >
         {children}
@@ -94,7 +95,7 @@ export default class CommentList extends Component {
             avatar={
               <Avatar src={item.avatar==null?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${item.avatar}` }/>
             }
-            author={<a href="https://ant.design">{item.fromUserNickname}</a>}
+            author={<Link to={`/pc/${item.fromUserId}`}>{item.fromUserNickname}</Link>}
             content={
               item.repType === 0
                 ? item.repCon

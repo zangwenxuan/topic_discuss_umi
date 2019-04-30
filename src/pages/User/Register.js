@@ -9,30 +9,41 @@ import router from "umi/router";
   user
 }))
 class Register extends Component {
+  constructor(props) {
+    super(props);
+    const emailChanged = false;
+  }
   state = {
     count: 0,
     confirmDirty: false,
-    visible: false,
-    help: "",
-    prefix: "86"
+    captchaButton: true
   };
 
   componentDidMount() {
     if (!!this.props.user.currentUser) {
-      router.push("/content");
+      router.push("/");
     }
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (!!this.props.user.currentUser && this.props.user.currentUser !== prevProps.user.currentUser) {
-      router.push("/content");
+    const {
+      user: { emailAvailable }
+    } = this.props;
+    if (
+      !!this.props.user.currentUser &&
+      this.props.user.currentUser !== prevProps.user.currentUser
+    ) {
+      router.push("/");
     }
     const form = this.props.form;
     if (prevProps.user.nameAvailable !== this.props.user.nameAvailable) {
       form.validateFields(["nickname"], { force: true });
     }
-    if (prevProps.user.emailAvailable !== this.props.user.emailAvailable) {
+    if (prevProps.user.emailAvailable !== emailAvailable) {
       form.validateFields(["email"], { force: true });
+      if (emailAvailable === "ok") {
+        this.handleGetCaptcha();
+      }
     }
   }
 
@@ -86,23 +97,31 @@ class Register extends Component {
 
   validateEmail = (rule, value, callback) => {
     const {
-      dispatch,
       user: { emailAvailable }
     } = this.props;
     const regex = /^[A-Za-z\d]+([-_.][A-Za-z\d]+)*@([A-Za-z\d]+[-.])+[A-Za-z\d]{2,4}$/;
     if (value && !regex.test(value)) {
       callback("邮箱地址格式错误！");
-    }
-    if (emailAvailable === "error") {
-      callback("该邮箱地址已被注册！");
-    }
-    if (value && regex.test(value)) {
-      dispatch({
-        type: "user/checkEmail",
-        payload: value
+      this.setState({
+        captchaButton: true
       });
+    } else {
+      if (!this.emailChanged && emailAvailable === "error") {
+        callback("该邮箱地址已被注册！");
+        this.setState({
+          captchaButton: true
+        });
+      } else {
+        this.setState({
+          captchaButton: false
+        });
+      }
     }
     callback();
+  };
+
+  handleEmailChange = () => {
+    this.emailChanged = true;
   };
 
   compareToFirstPassword = (rule, value, callback) => {
@@ -127,7 +146,15 @@ class Register extends Component {
     }
     callback();
   };
+
   onGetCaptcha = () => {
+    const { dispatch } = this.props;
+    const email = this.props.form.getFieldValue("email");
+    this.emailChanged = false;
+    dispatch({ type: "user/checkEmail", payload: email });
+  };
+
+  handleGetCaptcha = () => {
     const { dispatch } = this.props;
     const email = this.props.form.getFieldValue("email");
     dispatch({ type: "user/getCaptcha", payload: email });
@@ -143,7 +170,7 @@ class Register extends Component {
   };
 
   render() {
-    const { count } = this.state;
+    const { count, captchaButton } = this.state;
     const { getFieldDecorator } = this.props.form;
     const {
       user: { captchaAvailable }
@@ -173,7 +200,13 @@ class Register extends Component {
                 validator: this.validateEmail
               }
             ]
-          })(<Input size="large" placeholder="邮箱" />)}
+          })(
+            <Input
+              onChange={this.handleEmailChange}
+              size="large"
+              placeholder="邮箱"
+            />
+          )}
         </Form.Item>
         <Form.Item>
           {getFieldDecorator("password", {
@@ -223,7 +256,7 @@ class Register extends Component {
                 rules: [
                   {
                     required: true,
-                    message: "请确认验证码!"
+                    message: "请输入验证码!"
                   }
                 ]
               })(<Input size="large" placeholder="输入验证码" />)}
@@ -231,7 +264,7 @@ class Register extends Component {
           </Col>
           <Col span={6}>
             <Button
-              disabled={count}
+              disabled={captchaButton || count}
               onClick={this.onGetCaptcha}
               size="large"
               style={{ width: "100%" }}
