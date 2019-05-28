@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { List, Avatar, Comment, Icon, Tooltip, Input, message } from "antd";
 import moment from "moment";
 import "moment/locale/zh-cn";
-import Link from "umi/link"
+import Link from "umi/link";
 import styles from "./index.less";
 import Editor from "../Editor";
 
@@ -17,6 +17,13 @@ export default class CommentList extends Component {
     toUserId: null,
     toUserNickname: null
   };
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    if (nextState !== this.state) {
+      return true;
+    }
+    return this.props.dataSource !== nextProps.dataSource;
+  }
+
   showEditor = ({ commentId, fromUserId, fromUserNickname }) => {
     this.setState({
       commentId,
@@ -26,8 +33,11 @@ export default class CommentList extends Component {
     });
   };
   submit = value => {
-    console.log("submit");
-    const { user, postCommentReply, feedId } = this.props;
+    const { postCommentReply, feedId, showLogin } = this.props;
+    if (!sessionStorage.getItem("isLogin")) {
+      showLogin();
+      return;
+    }
     const { toUserId, commentId } = this.state;
     const payload = {
       commentReply: {
@@ -62,11 +72,17 @@ export default class CommentList extends Component {
               : moment(record.time).format(dateFormat)}
           </span>,
           <span>
-            <Icon type="message" onClick={this.showEditor.bind(this, record)} />
+            <Icon type="message" onClick={() => this.showEditor(record)} />
           </span>
         ]}
         avatar={
-          <Avatar src={record.avatar==null?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${record.avatar}` }/>
+          <Avatar
+            src={
+              record.avatar == null
+                ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                : `http://localhost:8080/pic/${record.avatar}`
+            }
+          />
         }
         author={<Link to={`/pc/${record.fromUserId}`}>{record.nickname}</Link>}
         content={record.comCon}
@@ -76,33 +92,43 @@ export default class CommentList extends Component {
     );
     const commentChildren = itemList => {
       return itemList.map((item, index) => (
-        <div>
-          <Comment
-            key={index}
-            actions={[
+        <Comment
+          key={index}
+          actions={[
+            <span>
+              {moment().subtract(1, "days") < item.repTime
+                ? moment(item.repTime).fromNow()
+                : moment(item.repTime).format(dateFormat)}
+            </span>,
+            <span>
+              <Icon type="message" onClick={() => this.showEditor(item)} />
+            </span>
+          ]}
+          avatar={
+            <Avatar
+              src={
+                item.avatar == null
+                  ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                  : `http://localhost:8080/pic/${item.avatar}`
+              }
+            />
+          }
+          author={
+            <Link to={`/pc/${item.fromUserId}`}>{item.fromUserNickname}</Link>
+          }
+          content={
+            item.repType === 0 ? (
+              item.repCon
+            ) : (
               <span>
-                {moment().subtract(1, "days") < item.repTime
-                  ? moment(item.repTime).fromNow()
-                  : moment(item.repTime).format(dateFormat)}
-              </span>,
-              <span>
-                <Icon
-                  type="message"
-                  onClick={this.showEditor.bind(this, item)}
-                />
+                回复
+                <Link to={`/pc/${item.toUserId}`}>{`@${
+                  item.toUserNickname
+                }`}</Link> :{item.repCon}
               </span>
-            ]}
-            avatar={
-              <Avatar src={item.avatar==null?"https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png ":`http://localhost:8080/pic/${item.avatar}` }/>
-            }
-            author={<Link to={`/pc/${item.fromUserId}`}>{item.fromUserNickname}</Link>}
-            content={
-              item.repType === 0
-                ? item.repCon
-                : `回复${item.toUserNickname}：${item.repCon}`
-            }
-          />
-        </div>
+            )
+          }
+        />
       ));
     };
 

@@ -42,7 +42,7 @@ export default class InfiniteListExample extends React.Component {
       loading: true
     });
     if (data.length > 140) {
-      message.warning("Infinite List loaded all");
+      message.warning("Infinite FeedList loaded all");
       this.setState({
         hasMore: false,
         loading: false

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Input, Steps, Row, Col, Form, Button, Alert, Icon } from "antd";
 import { connect } from "dva";
 import styles from "./index.less";
-import Link from "../SetPassword/SetPassword";
+import Link from "umi/link";
 
 const { Step } = Steps;
 
@@ -290,32 +290,32 @@ class BindMail extends Component {
         <Alert
           description={
             <span>
-              点<Link to={"/login"}>这里</Link>重新登录
+              点<Link to={"/"}>这里</Link>前往主页
             </span>
           }
           type="success"
           showIcon
-          message={"您已成功修改密码!"}
+          message={"您已成功绑定邮箱!"}
         />
       </div>
     );
   };
 
   Content = ({ current }) => {
-    const {user:{currentUser}} = this.props
+    const {user:{currentUser = {}}} = this.props
     if (current === 1) {
       return this.bindMail();
     }
     if (current === 2) {
       return this.success();
     }
-    return this.Verity(currentUser.email);
+    return this.Verity(currentUser.email||"");
   };
 
   render() {
     const { current } = this.state;
     return (
-      <div style={{ background: "#fff", height: "800px" }}>
+      <div style={{ background: "#fff", height: "800px", width: "1200px" }}>
         <h1 className={styles.h1}>更换邮箱</h1>
         <Row style={{ height: "600px" }}>
           <Col offset={2} span={6}>

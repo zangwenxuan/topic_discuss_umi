@@ -1,21 +1,15 @@
 import React, { Component } from "react";
-import {
-  Card,
-  Icon,
-  Avatar,
-  Tag,
-  Tooltip
-} from "antd";
+import { Card, Icon, Avatar, Tag, Tooltip, message } from "antd";
 import { connect } from "dva";
-import router from "umi/router"
+import router from "umi/router";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
 import Link from "umi/link";
+import BraftEditor from "braft-editor";
 
-import PersonalCard from "../../components/PersonalCard"
+import PersonalCard from "../../components/PersonalCard";
 import Editor from "../../components/Editor";
 import CommentList from "../../components/CommentList";
-import LoginModal from "../../components/LoginModal";
 
 const { Meta } = Card;
 
@@ -33,17 +27,18 @@ class Details extends Component {
     isKeep: false,
     likeNum: "",
     keepNum: "",
-    messageNum: "",
-    loginVisible: false
+    messageNum: ""
   };
 
   componentDidMount() {
-    console.log("DidMount")
     window.scrollTo(0, 0);
-    const { match:{params}, dispatch } = this.props;
-    if(!params.feedId){
-      router.replace("/index")
-      return
+    const {
+      match: { params },
+      dispatch
+    } = this.props;
+    if (!params.feedId) {
+      router.replace("/index");
+      return;
     }
     dispatch({
       type: "details/getContentDetails",
@@ -58,7 +53,7 @@ class Details extends Component {
       window.scrollTo(0, 0);
     }
     if (prevProps.details !== this.props.details) {
-        const {
+      const {
         isLiked,
         isKeep,
         likeNum,
@@ -90,9 +85,19 @@ class Details extends Component {
       commentValue: e.target.value
     });
   };
-  handleLikeChange = () => {
+  showLogin = () => {
     const { dispatch } = this.props;
-    const {feedId} = this.state
+    dispatch({
+      type: "user/showLoginModal"
+    });
+  };
+  handleLikeChange = () => {
+    if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
+      return;
+    }
+    const { dispatch } = this.props;
+    const { feedId } = this.state;
     dispatch({
       type: "feed/like",
       payload: feedId
@@ -104,8 +109,12 @@ class Details extends Component {
     });
   };
   handleKeepChange = () => {
+    if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
+      return;
+    }
     const { dispatch } = this.props;
-    const {feedId} = this.state
+    const { feedId } = this.state;
     dispatch({
       type: "feed/keep",
       payload: feedId
@@ -148,8 +157,16 @@ class Details extends Component {
     );
   };
   submit = value => {
+    if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
+      return;
+    }
     const { dispatch } = this.props;
     const { visible } = this.state;
+    if (!value) {
+      message.error("评论内容不能为空！");
+      return;
+    }
     const payload = {
       sendContentFeedId: this.state.feedId,
       comCon: value,
@@ -195,20 +212,14 @@ class Details extends Component {
       return <div />;
     }
     const tags = themeList.map((t, index) => (
-      <Link to={`/content/${t}`} key={index}>
+      <Link to={`/index?tab=${t}`} key={index}>
         <Tag className={styles.tag} color={this.randomColor()}>
           {t}
         </Tag>
       </Link>
     ));
-    return (
-      <div>
-        <h5 style={{ marginRight: 8, display: "inline" }}>标签:</h5>
-        {tags}
-      </div>
-    );
+    return <div>{tags}</div>;
   };
-
   postCommentReply = payload => {
     const { dispatch } = this.props;
     dispatch({
@@ -223,18 +234,13 @@ class Details extends Component {
     const { picList = {}, themeList = {} } = contentDetails;
     const commentList = {
       feedId,
-      user,
       postCommentReply: this.postCommentReply,
-      dataSource: commentUserList
+      dataSource: commentUserList,
+      showLogin: this.showLogin
     };
+    const content = !!contentDetails.content ? contentDetails.content : "{}";
     return (
-      <div style={{width:"1000px",margin:"0 auto"}}>
-        <LoginModal
-          onCancel={() => {
-            this.setState({ loginVisible: false });
-          }}
-          visible={this.state.loginVisible}
-        />
+      <div style={{ width: "1000px", margin: "0 auto" }}>
         <Card
           className={styles.card}
           actions={[
@@ -265,12 +271,27 @@ class Details extends Component {
                 }
               />
             }
-            title={<Link to={`/pc/${contentDetails.uid}`}>{contentDetails.nickname}</Link>}
+            title={
+              <Link to={`/pc/${contentDetails.authorId}`}>
+                {contentDetails.nickname}
+              </Link>
+            }
             description={this.showTags(themeList)}
           />
-          <font size="4" color="black" style={{ marginLeft: "45px" }}>
-            {contentDetails.content}
-          </font>
+          <div
+            size="4"
+            color="black"
+            style={{ fontSize: "20px", marginLeft: "50px" }}
+          >
+            <div
+              className="braft-output-content"
+              dangerouslySetInnerHTML={{
+                __html: BraftEditor.createEditorState(
+                  JSON.parse(content)
+                ).toHTML()
+              }}
+            />
+          </div>
           <Zmage imageUrls={picList} />
         </Card>
         {visible ? (
@@ -284,4 +305,4 @@ class Details extends Component {
   }
 }
 
-export default Details
+export default Details;

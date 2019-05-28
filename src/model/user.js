@@ -7,7 +7,7 @@ export default {
     nameAvailable: undefined,
     status: undefined,
     emailAvailable: undefined,
-    loginModalVisible:undefined,
+    loginModalVisible:false,
   },
   effects: {
     *register({ payload }, { call, put }) {
@@ -179,6 +179,9 @@ export default {
         type: "cancelTheme",
         payload: res
       });
+    },
+    *showLoginModal(_,{put}){
+      
     }
   },
   reducers: {
@@ -230,6 +233,18 @@ export default {
     },
     clearUser(state, { payload }) {
       return { status: undefined };
+    },
+    showLoginModal(state,_) {
+      return {
+        ...state,
+        loginModalVisible:true
+      };
+    },
+    hiddenLoginModal(state,_){
+      return {
+        ...state,
+        loginModalVisible: false
+      }
     }
   }
 };

@@ -20,19 +20,6 @@ const noMatchs = (
 const { Content, Footer } = Layout;
 
 class BasicLayout extends Component {
-  state = {
-    loginVisible: false
-  };
-  showLogin = () => {
-    this.setState({
-      loginVisible: true
-    });
-  };
-  hideLogin = () => {
-    this.setState({
-      loginVisible: false
-    });
-  };
   getRouterAuthority = (pathname, routeData) => {
     let pathnames = pathname.split("/");
     if (
@@ -102,11 +89,6 @@ class BasicLayout extends Component {
     const routerConfig = this.getRouterAuthority(pathname, routes);
     return (
       <Layout>
-        <LoginModal
-          changeVisible={this.hideLogin}
-          visible={this.state.loginVisible}
-          onCancel={() => this.setState({ loginVisible: false })}
-        />
         <Header />
         <Content style={{ padding: "0 50px",minHeight:"700px" }} className={styles.content}>
           {/*         <Row className={styles.row}>

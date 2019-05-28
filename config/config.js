@@ -19,6 +19,13 @@ export default {
       path: "/register",
       component: "user/register"
     },*/
+    { path: "/admin", component: "Admin/Admin" ,
+      routes: [
+        {path: "/admin",redirect: "/admin/usermanager"},
+        {path: "/admin/usermanager",component: "Admin/UserList"},
+        {path: "/admin/feedmanager",component: "Admin/FeedManager"},
+      ]
+    },
     {
       path: "/",
       component: "../layout",
@@ -79,9 +86,11 @@ export default {
         { path: "/setpassword", component: "SetPassword/SetPassword" },
         { path: "/bindmail", component: "BindMail/BindMail" },
         { path: "/test", component: "test" },
+        { path: "/search", component: "Search/Search" },
         { component: "./Exception/404" }
       ]
-    }
+    },
+
   ],
   proxy: {
     "/api": {

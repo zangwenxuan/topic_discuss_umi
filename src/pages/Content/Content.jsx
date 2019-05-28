@@ -5,26 +5,34 @@ import {
   Card,
   Tabs,
   Icon,
+  Input,
   Row,
   Col,
   Popover,
   Tag,
-  BackTop
+  BackTop,
+  Select,
+  List
 } from "antd";
 import { connect } from "dva";
 import Link from "umi/link";
 import router from "umi/router";
+import ClassNames from "classnames";
 import styles from "./index.less";
 
 import LoginFrom from "../../components/LoginForm";
 import LoginModal from "../../components/LoginModal";
 import EditorFeed from "../../components/EditorFeed";
-import List from "../../components/FeedList";
+import FeedList from "../../components/FeedList";
+import PersonalCard from "../../components/PersonalCard";
 import { Sticky, StickyContainer } from "react-sticky";
 
 const Panel = Collapse.Panel;
 const Meta = Card.Meta;
 const TabPane = Tabs.TabPane;
+const Search = Input.Search;
+const InputGroup = Input.Group;
+const Option = Select.Option;
 
 const renderTabBar = (props, DefaultTabBar) => (
   <Sticky bottomOffset={80}>
@@ -38,11 +46,14 @@ const renderTabBar = (props, DefaultTabBar) => (
   </Sticky>
 );
 
-@connect(({ user, feed, indexFeed, loading }) => ({
+@connect(({ user, feed, feeds, loading, globalFeed }) => ({
   user,
-  feed,
-  indexFeed,
-  loading: loading.effects["indexFeed/selectFeed"]
+  feeds,
+  globalFeed,
+  indexLoading: loading.effects["feeds/selectIndex"],
+  subscribeLoading: loading.effects["feeds/selectSubscribe"],
+  themeLoading: loading.effects["feeds/selectByTheme"],
+  cardLoading: loading.effects["global/queryUser"]
 }))
 class ContentPanel extends Component {
   state = {
@@ -50,7 +61,9 @@ class ContentPanel extends Component {
     loginVisible: false,
     activeKey: "index",
     tabList: [],
-    isLogin: false
+    isLogin: false,
+    searchClassName: ClassNames(styles.searchHidden),
+    searchType: "theme"
   };
 
   componentDidMount = () => {
@@ -67,11 +80,18 @@ class ContentPanel extends Component {
     });
     if (!query.key) {
       dispatch({
-        type: "indexFeed/selectIndex"
+        type: "feeds/selectIndex"
       });
     } else {
       this.handleTabChange(query.key);
     }
+
+    //获取热门标签
+    dispatch({
+      type: "feeds/selectHotTheme"
+    });
+    // 挂载滚动监听
+    window.addEventListener("scroll", this.bindScroll);
   };
 
   componentDidUpdate = prevProps => {
@@ -97,6 +117,41 @@ class ContentPanel extends Component {
     }
   };
 
+  componentWillUnmount() {
+    // 移除滚动监听
+    window.removeEventListener("scroll", this.bindScroll);
+  }
+
+  bindScroll = event => {
+    const {
+      moreLoading,
+      feeds: { noMoreFeed }
+    } = this.props;
+    // 滚动的高度
+    const scrollTop =
+      (event.srcElement ? event.srcElement.documentElement.scrollTop : false) ||
+      window.pageYOffset ||
+      (event.srcElement ? event.srcElement.body.scrollTop : 0);
+    // 视窗高度
+    const clientHeight =
+      (event.srcElement && event.srcElement.documentElement.clientHeight) ||
+      document.body.clientHeight;
+    // 页面高度
+    const scrollHeight =
+      (event.srcElement && event.srcElement.documentElement.scrollHeight) ||
+      document.body.scrollHeight;
+    // 距离页面底部的高度
+    const height = scrollHeight - scrollTop - clientHeight;
+    // 判断距离页面底部的高度
+    if (height <= 1000) {
+      // 判断执行回调条件
+      if (!moreLoading && !noMoreFeed) {
+        // 执行回调
+        this.moreFeed();
+      }
+    }
+  };
+
   handleTabChange = tab => {
     const {
       dispatch,
@@ -107,7 +162,7 @@ class ContentPanel extends Component {
     });
     if (tab === "index") {
       dispatch({
-        type: "indexFeed/selectIndex"
+        type: "feeds/selectIndex"
       });
       return;
     }
@@ -117,7 +172,7 @@ class ContentPanel extends Component {
         return;
       }
       dispatch({
-        type: "indexFeed/selectSubscribe"
+        type: "feeds/selectSubscribe"
       });
       return;
     }
@@ -149,7 +204,7 @@ class ContentPanel extends Component {
       sessionStorage.setItem("tabList", JSON.stringify(tabList));
     }
     dispatch({
-      type: "indexFeed/selectByTheme",
+      type: "feeds/selectByTheme",
       payload: themName
     });
   };
@@ -254,8 +309,19 @@ class ContentPanel extends Component {
     return color;
   };
 
+  showLogin = () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "user/showLoginModal"
+    });
+  };
+
   addTag = (e, title) => {
     e.preventDefault();
+    if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
+      return;
+    }
     const { dispatch } = this.props;
     dispatch({
       type: "user/addTag",
@@ -270,6 +336,77 @@ class ContentPanel extends Component {
       type: "user/cancelTag",
       payload: { themeName: title }
     });
+  };
+
+  moreFeed = () => {
+    const {
+      dispatch,
+      indexLoading,
+      subscribeLoading,
+      themeLoading
+    } = this.props;
+    const { activeKey } = this.state;
+    if (!indexLoading && !subscribeLoading && !themeLoading) {
+      if (activeKey === "index") {
+        dispatch({
+          type: "feeds/selectIndex"
+        });
+      } else if (activeKey === "subscribe") {
+        dispatch({
+          type: "feeds/selectSubscribe"
+        });
+      } else {
+        dispatch({
+          type: "feeds/selectByTheme",
+          payload: activeKey
+        });
+      }
+    }
+  };
+
+  showHotTags = themeList => {
+    if (themeList.length === 0) {
+      return (
+        <div style={{ minHeight: "100px", lineHeight: "100px" }}>
+          <p style={{ fontSize: "20px", textAlign: "center" }}>
+            暂时还没有任何圈子哦！
+          </p>
+        </div>
+      );
+    }
+    const tags = themeList.map((t, index) => (
+      <Link to={`/index?tab=${t}`} key={index}>
+        <Popover overlayClassName={styles.popTag} content={this.tagPop(t)}>
+          <Tag className={styles.tag} color={this.randomColor()}>
+            {t}
+            <Icon style={{ marginLeft: "5px" }} type="fire" />
+          </Tag>
+        </Popover>
+      </Link>
+    ));
+    return <div style={{ lineHeight: "22px" }}>{tags}</div>;
+  };
+
+  searchTags = themeList => {
+    if (themeList.length === 0) {
+      return (
+        <div style={{ minHeight: "100px", lineHeight: "100px" }}>
+          <p style={{ fontSize: "20px", textAlign: "center" }}>
+            暂时还没有任何相关圈子哦！
+          </p>
+        </div>
+      );
+    }
+    const tags = themeList.map((t, index) => (
+      <Link to={`/index?tab=${t}`} key={index}>
+        <Popover overlayClassName={styles.popTag} content={this.tagPop(t)}>
+          <Tag className={styles.tag} color={this.randomColor()}>
+            {t}
+          </Tag>
+        </Popover>
+      </Link>
+    ));
+    return <div style={{ lineHeight: "22px" }}>{tags}</div>;
   };
 
   showTags = themeList => {
@@ -293,12 +430,75 @@ class ContentPanel extends Component {
     ));
     return <div style={{ lineHeight: "22px" }}>{tags}</div>;
   };
+
+  handleSearch = value => {
+    const { dispatch } = this.props;
+    const { searchType } = this.state;
+    this.setState({
+      searchClassName: ClassNames(styles.searchShow)
+    });
+    if (searchType === "theme") {
+      dispatch({
+        type: "feeds/searchTheme",
+        payload: value
+      });
+    } else {
+      dispatch({
+        type: "feeds/searchUser",
+        payload: value
+      });
+    }
+
+    console.log(value);
+  };
+
+  handleSelectChange = value => {
+    this.setState({
+      searchType: value
+    });
+  };
+
+  newFollow = payload => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "globalFeed/newFollow",
+      payload
+    });
+  };
+
+  cancelFollow = payload => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "globalFeed/cancelFollow",
+      payload
+    });
+  };
+
+  queryUser = (visible, authorId) => {
+    if (visible) {
+      const { dispatch } = this.props;
+      dispatch({
+        type: "globalFeed/queryUser",
+        payload: authorId
+      });
+    }
+  };
   render() {
+    const { activeKey, isLogin, tabList, searchType } = this.state;
     const {
-      indexFeed,
+      feeds,
       loading,
+      globalFeed,
+      cardLoading,
       user: { currentUser = {} }
     } = this.props;
+    const feed = feeds[activeKey];
+    const {
+      noMoreFeed,
+      hotThemeList = [],
+      searchThemeList = [],
+      searchUserList
+    } = feeds;
     const {
       themeList,
       uid,
@@ -310,18 +510,25 @@ class ContentPanel extends Component {
       followingNum,
       feedNum
     } = currentUser;
-    const { activeKey, isLogin, tabList } = this.state;
+    const popProps = {
+      currentUid: currentUser.uid,
+      ...globalFeed,
+      cardLoading,
+      newFollow: this.newFollow,
+      cancelFollow: this.cancelFollow
+    };
     return (
-      <div>
-        <BackTop/>
+      <div style={{ width: "1200px" }}>
+        <BackTop />
         <LoginModal
           visible={this.state.loginVisible}
           onCancel={() => this.setState({ loginVisible: false })}
         />
-        <Row>
+        <Row gutter={8}>
           <Col span={17}>
             <Collapse bordered={false} style={{ marginBottom: "2px" }}>
               <Panel key={1} header={"点这里发布帖子和大家一起讨论吧"}>
+                {/* <Editor />*/}
                 <EditorFeed />
               </Panel>
             </Collapse>
@@ -340,7 +547,16 @@ class ContentPanel extends Component {
                 ))}
               </Tabs>
             </StickyContainer>
-            <List feed={indexFeed} listLoading={loading} tagPop={this.tagPop} />
+            <FeedList
+              feed={feed}
+              listLoading={loading}
+              tagPop={this.tagPop}
+              moreFeed={this.moreFeed}
+              showPage={false}
+            />
+            <p style={{ textAlign: "center", fontSize: "18px" }}>
+              {noMoreFeed ? "抱歉，没有更多动态了哦" : "正在加载......"}
+            </p>
           </Col>
           <Col span={7}>
             {!!nickname ? (
@@ -409,6 +625,75 @@ class ContentPanel extends Component {
                 <LoginFrom />
               </div>
             )}
+            <div className={styles.tags}>
+              <span style={{ fontSize: "20px", color: "#989090" }}>热门:</span>
+              {this.showHotTags(hotThemeList)}
+            </div>
+            <div>
+              <InputGroup style={{ display: "flex" }} compact>
+                <Select defaultValue="theme" onChange={this.handleSelectChange}>
+                  <Option value="theme">圈子</Option>
+                  <Option value="user">用户</Option>
+                </Select>
+                <Search
+                  style={{ width: "100%" }}
+                  placeholder="搜索圈子或者用户"
+                  onSearch={value => this.handleSearch(value)}
+                />
+              </InputGroup>
+              <div className={this.state.searchClassName}>
+                {searchType === "theme" ? (
+                  <div style={{ background: "#fff", padding: "10px" }}>
+                    {this.searchTags(searchThemeList)}
+                  </div>
+                ) : (
+                  <List
+                    size={"small"}
+                    pagination={{ hideOnSinglePage: true }}
+                    dataSource={searchUserList}
+                    itemLayout="horizontal"
+                    style={{ background: "#fff" }}
+                    renderItem={item => (
+                      <List.Item>
+                        <List.Item.Meta
+                          avatar={
+                            <Popover
+                              overlayClassName={styles.pop}
+                              placement={"rightTop"}
+                              onVisibleChange={visible =>
+                                this.queryUser(visible, item.uid)
+                              }
+                              content={<PersonalCard {...item} {...popProps} />}
+                            >
+                              <Link to={`/pc/${item.uid}`}>
+                                <Avatar
+                                  size={50}
+                                  src={
+                                    item.avatar == null
+                                      ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                                      : `http://localhost:8080/pic/${
+                                          item.avatar
+                                        }`
+                                  }
+                                />
+                              </Link>
+                            </Popover>
+                          }
+                          title={
+                            <Link to={`/pc/${item.uid}`}>
+                              <span>{item.nickname}</span>
+                            </Link>
+                          }
+                          description={
+                            item.signature || "Ta还没有填写简介。。。。。。"
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
           </Col>
         </Row>
       </div>

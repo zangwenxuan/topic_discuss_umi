@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Menu, Icon, Switch, Layout } from "antd";
-import Link from "umi/link"
+import Link from "umi/link";
 import { connect } from "dva";
 import router from "umi/router";
 
@@ -16,7 +16,7 @@ class PersonalCenter extends Component {
     const {
       match: { params, path },
       user: { currentUser },
-      location: {pathname}
+      location: { pathname }
     } = this.props;
     const isLogin = localStorage.getItem("token");
     if (!params.uid) {
@@ -28,27 +28,27 @@ class PersonalCenter extends Component {
       return;
     }
     this.setState({
-      uid:params.uid
-    })
-    if(pathname === `/pc/${params.uid}/release`){
+      uid: params.uid
+    });
+    if (pathname === `/pc/${params.uid}/release`) {
       this.setState({
-        current:"2"
-      })
+        current: "2"
+      });
     }
-    if(pathname === `/pc/${params.uid}/keep`){
+    if (pathname === `/pc/${params.uid}/keep`) {
       this.setState({
         current: "3"
-      })
+      });
     }
-    if(pathname === `/pc/${params.uid}/follower`){
+    if (pathname === `/pc/${params.uid}/follower`) {
       this.setState({
         current: "4"
-      })
+      });
     }
-    if(pathname === `/pc/${params.uid}/following`){
+    if (pathname === `/pc/${params.uid}/following`) {
       this.setState({
         current: "5"
-      })
+      });
     }
   }
 
@@ -71,27 +71,27 @@ class PersonalCenter extends Component {
     const { uid } = this.state;
     this.setState({
       current: e.key
-    })
+    });
     if (e.key === "1") {
       router.push(`/pc/${uid}`);
     }
     if (e.key === "2") {
       router.push(`/pc/${uid}/release`);
     }
-    if(e.key === '3'){
-      router.push(`/pc/${uid}/keep`)
+    if (e.key === "3") {
+      router.push(`/pc/${uid}/keep`);
     }
-    if(e.key === '4'){
-      router.push(`/pc/${uid}/follower`)
+    if (e.key === "4") {
+      router.push(`/pc/${uid}/follower`);
     }
-    if(e.key === '5'){
-      router.push(`/pc/${uid}/following`)
+    if (e.key === "5") {
+      router.push(`/pc/${uid}/following`);
     }
   };
   render() {
-    const {uid,current} = this.state
+    const { uid, current } = this.state;
     return (
-      <Layout style={{ minHeight: "800px" }}>
+      <Layout style={{ minHeight: "800px", width: "1200px" }}>
         <Sider
           theme={"light"}
           breakpoint="lg"
@@ -113,15 +113,15 @@ class PersonalCenter extends Component {
           >
             <Menu.Item key="1">
               <Icon type="user" />
-             名片
+              名片
             </Menu.Item>
-          <Menu.Item key="2">
+            <Menu.Item key="2">
               <Icon type="mail" />
-            动态
-           </Menu.Item>
+              动态
+            </Menu.Item>
             <Menu.Item key="3">
               <Icon type="lock" />
-             收藏
+              收藏
             </Menu.Item>
             <Menu.Item key="4">
               <Icon type="lock" />

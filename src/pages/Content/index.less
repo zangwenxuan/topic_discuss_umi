@@ -15,7 +15,6 @@
   :global{
     .ant-card{
       background-color: #fff;
-      margin-left: 5px;
       .ant-card-body {
         padding: 12px;
         .ant-card-meta-avatar {
@@ -97,5 +96,19 @@
 :global{
   .ant-back-top{
     right: 30%;
+  }
+}
+.searchHidden{
+  opacity: 0;
+}
+.searchShow{
+  opacity: 1;
+  transition: 0.5s;
+}
+.pop{
+  :global{
+    .ant-popover-inner-content{
+      padding:0;
+    }
   }
 }

@@ -1,24 +1,27 @@
-import React, { Compenent } from "react";
-import { Button, Input, Icon, Avatar, Row, Col } from "antd";
+import React, { Component } from "react";
+import { Button, Input, Icon, Avatar, Row, Col, message } from "antd";
 import PicturesWall from "../PicturesWall";
 import { connect } from "dva";
 import styles from "./index.less";
-import { withRouter } from "react-router";
 
+import Editor from "../../components/BraftEditor";
 import Tags from "../../components/Tag";
+import BraftEditor from "braft-editor";
+import { ContentUtils } from "braft-utils";
 
 const TextArea = Input.TextArea;
 
-class EditorFeed extends React.Component {
+@connect(({ user, sendFeed, loading }) => ({
+  user,
+  sendFeed,
+  Loading: loading.effects["feed/submit"]
+}))
+class EditorFeed extends Component {
   state = {
+    // 创建一个空的editorState作为初始值
+    editorState: BraftEditor.createEditorState(null),
     fileList: [],
-    tagList: [],
-    value: ""
-  };
-  updatePic = fileList => {
-    this.setState({
-      fileList
-    });
+    tagList: []
   };
   onPicChange = fileList => {
     this.setState({
@@ -30,102 +33,74 @@ class EditorFeed extends React.Component {
       tagList: list
     });
   };
-  onChange = e => {
-    this.setState({
-      value: e.target.value
+  onEditorChange = editorState => {
+    this.setState({ editorState });
+  };
+  showLogin = () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "user/showLoginModal"
     });
   };
   onSubmit = () => {
-    const { user, submit } = this.props;
-    const { value, fileList, tagList } = this.state;
+    if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
+      return;
+    }
+    const { dispatch } = this.props;
+    const { editorState, fileList, tagList } = this.state;
+    let isEmpty = true;
+    editorState.toRAW(true).blocks.forEach(l => {
+      if (!l.text.match(/^[ ]*$/)) {
+        isEmpty = false;
+      }
+    });
+    if (isEmpty) {
+      console.log(editorState.toRAW(true));
+      message.error("帖子内容不能为空！");
+      return;
+    }
     const payload = {
       pic: fileList.map(f => f.response.res),
-      content: value,
+      content: editorState.toRAW(),
       themeList: tagList
     };
-    submit(payload);
+    dispatch({
+      type: "feed/submit",
+      payload
+    });
     this.setState({
-      value: "",
       fileList: [],
-      tagList: []
+      tagList: [],
+      editorState: ContentUtils.clear(this.state.editorState)
     });
     this.refs.tags.clear();
     this.refs.pic.clear();
   };
-  handleInputConfirm = () => {
-    const state = this.state;
-    const { changeTag } = this.props;
-    const inputValue = state.inputValue;
-    let tags = state.tags;
-    let colors = state.colors;
-    if (inputValue && tags.indexOf(inputValue) === -1) {
-      tags = [...tags, inputValue];
-      colors.push(this.randomColor());
-    }
-    changeTag(tags);
-    this.setState({
-      tags,
-      inputVisible: false,
-      inputValue: ""
-    });
-  };
 
   render() {
-    const { value } = this.state;
+    const { editorState } = this.state;
     return (
       <div className={styles.main}>
         <Tags showTitle changeTag={this.tagChange} ref="tags" />
         <div className={styles.editor}>
-          <Row gutter={6}>
-            <Col span={22}>
-              <TextArea
-                rows={4}
-                onChange={this.onChange}
-                value={value}
-                placeholder="输入你想讨论的内容"
-              />
-            </Col>
-            <Col span={2} className={styles.submitCol}>
-              <Button
-                className={styles.submit}
-                onClick={this.onSubmit}
-                type="primary"
-              >
-                发布
-              </Button>
-            </Col>
-          </Row>
+          <Editor onChange={this.onEditorChange} value={editorState} />
         </div>
         <PicturesWall
           onPicChange={this.onPicChange}
           className={styles.picture}
           ref="pic"
         />
+        <Button
+          className={styles.submit}
+          onClick={this.onSubmit}
+          type="primary"
+        >
+          发布
+        </Button>
       </div>
     );
   }
 }
 
-function mapStateToProps({ user, sendFeed, loading }) {
-  return {
-    sendFeed,
-    user,
-    Loading: loading.effects["feed/submit"]
-  };
-}
-function mapDispatchToProps(dispatch) {
-  return {
-    submit: payload => {
-      dispatch({
-        type: "feed/submit",
-        payload
-      });
-    }
-  };
-}
-export default withRouter(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )(EditorFeed)
-);
+export default EditorFeed;

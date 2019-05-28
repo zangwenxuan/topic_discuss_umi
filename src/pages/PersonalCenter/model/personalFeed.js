@@ -36,7 +36,6 @@ export default {
           contentList.push(c);
         }
       });
-      console.log(contentList)
       return { ...state, contentList };
     }
   }

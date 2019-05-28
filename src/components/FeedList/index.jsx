@@ -8,8 +8,7 @@ import {
   Tag,
   Tooltip,
   Spin,
-  Skeleton,
-  Button
+  Skeleton
 } from "antd";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
@@ -17,18 +16,20 @@ import moment from "moment";
 import classNames from "classnames";
 import "moment/locale/zh-cn";
 import Link from "umi/link";
+import BraftEditor from "braft-editor";
+import "braft-editor/dist/output.css";
 
 import Editor from "../../components/Editor";
 import PersonalCard from "../../components/PersonalCard";
 import { connect } from "dva";
 
+const rdom = require("react-dom");
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
 
 @connect(({ user, globalFeed, loading }) => ({
   user,
   globalFeed,
-  Loading: loading.effects["feed/getContentList"],
   cardLoading: loading.effects["globalFeed/queryUser"]
 }))
 class FeedList extends React.Component {
@@ -42,14 +43,15 @@ class FeedList extends React.Component {
     likeList: [],
     keepNum: [],
     likeNum: [],
-    messageNum: []
+    messageNum: [],
+    showPage: true
   };
 
   static defaultProps = {
     keep: false,
     showClose: false,
     clickItem: false,
-    tagPop: ()=>{}
+    tagPop: () => {}
   };
 
   componentDidMount() {
@@ -64,7 +66,7 @@ class FeedList extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (prevProps.feed !== this.props.feed) {
+    if (!!this.props.feed && prevProps.feed !== this.props.feed) {
       const {
         keepNum,
         keepList,
@@ -128,16 +130,24 @@ class FeedList extends React.Component {
   };
 
   showComment = id => {
-    const {visible} = this.state
+    const { visible } = this.state;
     this.setState({
-    visible: !visible,
+      visible: !visible,
       feedId: id
     });
   };
 
+  showLogin = () => {
+    const {dispatch} = this.props
+    dispatch({
+      type: "user/showLoginModal"
+    })
+  };
+
   handleLikeChange = feedId => {
     if (!sessionStorage.getItem("isLogin")) {
-      return;
+      this.showLogin();
+      return
     }
     const { dispatch } = this.props;
     const { likeList, likeNum } = this.state;
@@ -178,6 +188,7 @@ class FeedList extends React.Component {
 
   handleKeepChange = feedId => {
     if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
       return;
     }
     const { dispatch } = this.props;
@@ -251,33 +262,45 @@ class FeedList extends React.Component {
     return color;
   };
 
-  insertTag = (e,title) => {
+  insertTag = (e, title) => {
     e.preventDefault();
-    const {dispatch} = this.props
+    const { dispatch } = this.props;
     dispatch({
       type: "user/insertUserTheme",
       payload: title
-    })
-  }
+    });
+  };
 
-  tagPop = (title) => {
-    return (<div ><a onClick={e=>this.insertTag(e,title)}><Icon type="plus" />添加到我的圈子</a></div>)
-  }
+  tagPop = title => {
+    return (
+      <div>
+        <a onClick={e => this.insertTag(e, title)}>
+          <Icon type="plus" />
+          添加到我的圈子
+        </a>
+      </div>
+    );
+  };
 
   showTags = ({ themeList }) => {
-      const {tagPop} = this.props
+    const { tagPop } = this.props;
     const tags = themeList.map((t, index) => (
       <Link to={`/index?tab=${t}`} key={index}>
         <Popover overlayClassName={styles.popTag} content={tagPop(t)}>
-        <Tag className={styles.tag} color={this.randomColor()}>
-          {t}
-        </Tag></Popover>
+          <Tag className={styles.tag} color={this.randomColor()}>
+            {t}
+          </Tag>
+        </Popover>
       </Link>
     ));
     return <div>{tags}</div>;
   };
 
   submit = value => {
+    if (!sessionStorage.getItem("isLogin")) {
+      this.showLogin();
+      return;
+    }
     const { dispatch } = this.props;
     const payload = {
       sendContentFeedId: this.state.feedId,
@@ -339,14 +362,56 @@ class FeedList extends React.Component {
         );
       }
     }
-    return null;
+    /*return <div className={styles.more}><Icon style={{fontSize:"20px"}} type="more"></Icon></div>;*/
+  };
+
+  handleScroll = e => {
+    const ele = rdom.findDOMNode(this);
+    console.log(ele);
+    if (e.nativeEvent.deltaY <= 0) {
+      /* scrolling up */
+      if (ele.scrollTop <= 0) {
+        console.log(ele.scrollTop);
+        console.log("**********");
+      }
+    }
+  };
+
+  more = () => {
+    const { moreFeed } = this.props;
+    let scrollHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight
+    );
+    //滚动条滚动距离
+    let scrollTop =
+      window.pageYOffset ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop;
+    //窗口可视范围高度
+    let clientHeight =
+      window.innerHeight ||
+      Math.min(
+        document.documentElement.clientHeight,
+        document.body.clientHeight
+      );
+    if (clientHeight + scrollTop >= scrollHeight) {
+      moreFeed();
+    }
   };
 
   render() {
-    const { feed = {}, globalFeed, cardLoading, listLoading, user:{currentUser={}} } = this.props;
+    const {
+      feed = {},
+      globalFeed,
+      cardLoading,
+      listLoading,
+      user: { currentUser = {} },
+      showPage
+    } = this.props;
     const { contentList = [] } = feed;
     const popProps = {
-      currentUid:currentUser.uid,
+      currentUid: currentUser.uid,
       ...globalFeed,
       cardLoading,
       newFollow: this.newFollow,
@@ -363,13 +428,15 @@ class FeedList extends React.Component {
           className={listClass}
           itemLayout="vertical"
           size="large"
-          pagination={{
-            onChange: page => {
-              console.log(page);
-            },
-            pageSize: 10,
-            hideOnSinglePage: true
-          }}
+          pagination={
+            showPage && {
+              onChange: page => {
+                console.log(page);
+              },
+              pageSize: 10,
+              hideOnSinglePage: true
+            }
+          }
           dataSource={contentList}
           renderItem={item => (
             <div>
@@ -439,10 +506,17 @@ class FeedList extends React.Component {
                     }
                     description={this.showTags(item)}
                   />
-                  <Link to={`/details/${item.feedId}`}>
-                    <font color="black" size="4" style={{ marginLeft: "50px" }}>
-                      {item.content}
-                    </font>
+                  <Link className={styles.linkContent} to={`/details/${item.feedId}`}>
+                    <div color="black" size="4" style={{ marginLeft: "50px" }}>
+                      <div
+                        className="braft-output-content"
+                        dangerouslySetInnerHTML={{
+                          __html: BraftEditor.createEditorState(
+                            JSON.parse(item.content)
+                          ).toHTML()
+                        }}
+                      />
+                    </div>
                   </Link>
                   <Zmage imageUrls={item.picList} />
                 </Skeleton>

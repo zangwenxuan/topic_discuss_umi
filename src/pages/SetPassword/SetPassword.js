@@ -117,7 +117,7 @@ class SetPassword extends Component {
     const mails = mail.split("@");
     const mailShort = `${mails[0].substring(0, 3)}***@${mails[1]}`;
     return (
-      <div>
+      <div >
         <Form onSubmit={this.nextStep}>
           <Form.Item>
             <Input
@@ -243,20 +243,20 @@ class SetPassword extends Component {
   };
 
   Content = ({ current }) => {
-    const {user:{currentUser}} = this.props
+    const {user:{currentUser = {}}} = this.props
     if (current === 1) {
       return this.SetPassword();
     }
     if (current === 2) {
       return this.success();
     }
-    return this.Verity(currentUser.email);
+    return this.Verity(currentUser.email||"");
   };
 
   render() {
     const { current } = this.state;
     return (
-      <div style={{ background: "#fff", height: "800px" }}>
+      <div style={{ background: "#fff", height: "800px" ,width:"1200px"}}>
         <h1 className={styles.h1}>修改密码</h1>
         <Row style={{ height: "600px" }}>
           <Col offset={2} span={6}>

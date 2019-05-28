@@ -1,6 +1,5 @@
-import { Upload, Icon, Modal, message } from "antd";
+import { Upload, Icon, Modal } from "antd";
 import React from "react";
-import { connect } from "dva";
 import styles from "./index.less";
 
 class PicturesWall extends React.Component {
@@ -44,7 +43,6 @@ class PicturesWall extends React.Component {
         <Upload
           action="/api/content/uploadPic"
           name="importFile"
-          /* beforeUpload={this.beforeUpload}*/
           listType="picture-card"
           fileList={fileList}
           onPreview={this.handlePreview}

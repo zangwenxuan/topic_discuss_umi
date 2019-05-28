@@ -7,7 +7,6 @@ import { connect } from "dva";
 
 import LoginModal from "../components/LoginModal";
 import NoticeIcon from "../components/NoticeIcon";
-import Search from "../components/HeaderSrarch";
 
 const { Header } = Layout;
 
@@ -124,9 +123,17 @@ class HeaderPanel extends Component {
   };
 
   showLogin = () => {
-    this.setState({
-      loginVisible: true
-    });
+    const {dispatch} = this.props
+    dispatch({
+      type: "user/showLoginModal"
+    })
+  };
+
+  hideLogin = () => {
+    const {dispatch} = this.props
+    dispatch({
+      type: "user/hiddenLoginModal"
+    })
   };
 
   onNoticeVisibleChange = visible => {
@@ -154,6 +161,7 @@ class HeaderPanel extends Component {
       type: "user/logout"
     });
   };
+
   onItemClick = item => {
     const { itemClick } = this.state;
     if (!itemClick) {
@@ -316,11 +324,16 @@ class HeaderPanel extends Component {
       chatNotice
     } = this.getNotice();
     const {
-      user: { currentUser = {} }
+      user: { currentUser = {}, loginModalVisible }
     } = this.props;
     const { nickname = null, avatar = null } = currentUser;
     return (
       <Header className={styles.header}>
+        <LoginModal
+          changeVisible={this.hideLogin}
+          visible={loginModalVisible}
+          onCancel={this.hideLogin}
+        />
         <div className={styles.main}>
           <Link to="/">
             <span className={`${styles.action}`}>
@@ -331,7 +344,7 @@ class HeaderPanel extends Component {
             </span>
           </Link>
           <div className={styles.right}>
-            <span size="small" style={{ marginRight: "5px" }}>
+           {/* <span size="small" style={{ marginRight: "5px" }}>
               <Search
                 className={`${styles.action} ${styles.search}`}
                 placeholder={"输入任何你想搜索的内容"}
@@ -340,7 +353,7 @@ class HeaderPanel extends Component {
                 }}
                 onPressEnter={value => this.search(value)}
               />
-            </span>
+            </span>*/}
             {nickname ? (
               <NoticeIcon
                 onTabChange={e => this.handleTabChange(e)}
@@ -402,7 +415,7 @@ class HeaderPanel extends Component {
                     }
                   />
                   {nickname ? null : (
-                    <a
+                    <span
                       style={{
                         color: "#fff",
                         margin: "0 auto",
@@ -411,7 +424,7 @@ class HeaderPanel extends Component {
                       className={styles.spanLogin}
                     >
                       点击登录
-                    </a>
+                    </span>
                   )}
                 </Link>
               </span>

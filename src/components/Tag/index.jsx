@@ -5,17 +5,16 @@ import styles from "./index.less";
 export default class EditableTagGroup extends React.Component {
   state = {
     tags: [],
-    colors:[],
+    colors: [],
     inputVisible: false,
     inputValue: ""
   };
 
-
   handleClose = removedTag => {
     const tags = this.state.tags.filter(tag => tag !== removedTag);
-    const {changeTag} = this.props
+    const { changeTag } = this.props;
     this.setState({ tags });
-    changeTag(tags)
+    changeTag(tags);
   };
 
   showInput = () => {
@@ -28,15 +27,15 @@ export default class EditableTagGroup extends React.Component {
 
   handleInputConfirm = () => {
     const state = this.state;
-    const {changeTag} = this.props
+    const { changeTag } = this.props;
     const inputValue = state.inputValue;
     let tags = state.tags;
     let colors = state.colors;
     if (inputValue && tags.indexOf(inputValue) === -1) {
       tags = [...tags, inputValue];
-      colors.push(this.randomColor())
+      colors.push(this.randomColor());
     }
-    changeTag(tags)
+    changeTag(tags);
     this.setState({
       tags,
       inputVisible: false,
@@ -46,12 +45,10 @@ export default class EditableTagGroup extends React.Component {
 
   clear = () => {
     this.setState({
-      colors:[],
-      tags:[]
-    })
-  }
-
-
+      colors: [],
+      tags: []
+    });
+  };
 
   saveInputRef = input => (this.input = input);
 
@@ -85,10 +82,13 @@ export default class EditableTagGroup extends React.Component {
 
   render() {
     const { tags, inputVisible, inputValue, colors } = this.state;
-    const {showTitle} = this.props
+    const { showTitle } = this.props;
+    const tagVisible = tags.length <5
     return (
       <div className={styles.main}>
-        {showTitle?<h5 style={{ marginRight: 8, display: "inline" }}>选择你的标签:</h5>:null}
+        {showTitle ? (
+          <h5 style={{ marginRight: 8, display: "inline" }}>选择你的标签:</h5>
+        ) : null}
         {tags.map((tag, index) => {
           const isLongTag = tag.length > 20;
           const tagElem = (
@@ -122,7 +122,7 @@ export default class EditableTagGroup extends React.Component {
             onPressEnter={this.handleInputConfirm}
           />
         )}
-        {!inputVisible && (
+        {!inputVisible && tagVisible && (
           <Tag
             onClick={this.showInput}
             style={{ background: "#fff", borderStyle: "dashed" }}

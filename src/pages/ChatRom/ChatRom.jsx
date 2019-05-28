@@ -209,7 +209,7 @@ class MsgPopPage extends Component {
       shouldScroll
     };
     return (
-      <div className={styles.main}>
+      <div className={styles.main} >
         <ChatList {...chatProps} />
         <Row gutter={8} className={styles.row}>
           <Col span={22}>
