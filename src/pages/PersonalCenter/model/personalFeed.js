@@ -1,4 +1,5 @@
 import request from "../../../utils/requests";
+import { message } from "antd"
 export default {
   namespace: "personalFeed",
   state: {},
@@ -26,17 +27,46 @@ export default {
     showFeedList(state, { payload }) {
       return {
         ...state,
-        ...payload
+        feedList: payload
       };
     },
     deleteFromList(state, { payload }) {
-      let contentList = []
-      state.contentList.forEach(c => {
+      let feedList = [];
+      state.feedList.forEach(c => {
         if (c.feedId !== payload) {
-          contentList.push(c);
+          feedList.push(c);
         }
       });
-      return { ...state, contentList };
-    }
+      message.success("删除成功！")
+      return { ...state, feedList };
+    },
+    updateFeedLike(state, { payload }) {
+      let { feedList } = state;
+      feedList = feedList && feedList.map(f => {
+        if (f.feedId === payload) {
+          f.likeNum = f.like ? f.likeNum - 1 : f.likeNum + 1;
+          f.like = !f.like;
+        }
+        return f;
+      });
+      return{
+        ...state,
+        feedList
+      };
+    },
+    updateFeedKeep(state, { payload }) {
+      let { feedList } = state;
+      feedList = feedList && feedList.map(f => {
+        if (f.feedId === payload) {
+          f.keepNum = f.keep ? f.keepNum - 1 : f.keepNum + 1;
+          f.keep = !f.keep;
+        }
+        return f;
+      });
+      return{
+        ...state,
+        feedList
+      };
+    },
   }
 };

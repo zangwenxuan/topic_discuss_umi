@@ -7,7 +7,7 @@ import api from "../../utils/getImage";
 export default class ContentImgs extends Component {
   image_0 = () => <div className={styles.none} />;
   image_1 = list => (
-    <div style={{height:"400px",overflow:"hidden",marginTop:"30px"}}>
+    <div style={{overflow:"hidden",marginTop:"30px"}}>
       <Row gutter={1} style={{marginTop:"1px",overflow:"hidden"}}>
         <Col span={14} offset={3}>
           <Zmage

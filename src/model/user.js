@@ -33,6 +33,7 @@ export default {
       yield call(request.fetch, "get", "user/logout");
       sessionStorage.removeItem("isLogin");
       localStorage.removeItem("token");
+      window.location.reload();
       yield put({
         type: "clearUser"
       });
@@ -145,6 +146,7 @@ export default {
           type: "updateLoginState",
           payload: { status: "ok" }
         });
+        window.location.reload();
         localStorage.setItem("token", res);
       } else {
         yield put({

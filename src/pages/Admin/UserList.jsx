@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { Table, Input, Button, Icon } from "antd";
+import { Table, Input, Button, Icon, Popconfirm, Divider } from "antd";
 import Highlighter from "react-highlight-words";
+import Link from "umi/link";
 import { connect } from "dva";
 
 @connect(({ userManager }) => ({ userManager }))
@@ -87,12 +88,12 @@ class UserList extends Component {
   };
 
   deleteUser = uid => {
-    const {dispatch} = this.props
+    const { dispatch } = this.props;
     dispatch({
       type: "userManager/deleteUser",
-      payload: {uid}
-    })
-}
+      payload: { uid }
+    });
+  };
   render() {
     const {
       userManager: { userList = [] }
@@ -123,35 +124,51 @@ class UserList extends Component {
         title: "发帖数",
         dataIndex: "feedNum",
         key: "feedNum",
-        width: "12%",
+        width: "10%",
         sorter: (a, b) => a.feedNum - b.feedNum
       },
       {
         title: "粉丝数",
         dataIndex: "followerNum",
         key: "followerNum",
-        width: "12%",
+        width: "10%",
         sorter: (a, b) => a.followerNum - b.followerNum
       },
       {
         title: "关注数",
         dataIndex: "followingNum",
         key: "followingNum",
-        width: "12%",
+        width: "10%",
         sorter: (a, b) => a.followingNum - b.followingNum
       },
       {
-        title: 'Action',
-        key: 'action',
-        render: (record) => <a href="javascript:;" onClick={()=>this.deleteUser(record.uid)}>Delete</a>,
-      },
+        title: "Action",
+        key: "action",
+        render: record => (
+          <div>
+            <Link to={`/pc/${record.uid}`}>查看</Link>丨
+            <Popconfirm
+              onConfirm={() => this.deleteUser(record.uid)}
+              title={"是否确认删除？"}
+              okText={"确定"}
+              cancelText={"取消"}
+            >
+              <a href="javascript:;">删除</a>
+            </Popconfirm>
+          </div>
+        )
+      }
     ];
     return (
-      <Table
-        style={{ border: "1px solid #3933333d", backgroundColor: "#fff" }}
-        columns={columns}
-        dataSource={userList}
-      />
+      <div>
+        <Divider orientation="left">当前用户数量：{userList.length}</Divider>
+        <Table
+          rowKey={record => record.uid}
+          style={{ border: "1px solid #3933333d", backgroundColor: "#fff" }}
+          columns={columns}
+          dataSource={userList}
+        />
+      </div>
     );
   }
 }

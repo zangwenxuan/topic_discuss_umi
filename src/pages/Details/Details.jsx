@@ -99,8 +99,8 @@ class Details extends Component {
     const { dispatch } = this.props;
     const { feedId } = this.state;
     dispatch({
-      type: "feed/like",
-      payload: feedId
+      type: "feeds/like",
+      payload: {feedId}
     });
     const { isLiked, likeNum } = this.state;
     this.setState({
@@ -116,8 +116,8 @@ class Details extends Component {
     const { dispatch } = this.props;
     const { feedId } = this.state;
     dispatch({
-      type: "feed/keep",
-      payload: feedId
+      type: "feeds/keep",
+      payload: {feedId}
     });
     const { isKeep, keepNum } = this.state;
     this.setState({
@@ -266,7 +266,7 @@ class Details extends Component {
               <Avatar
                 src={
                   contentDetails.avatar == null
-                    ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                    ? "http://localhost:8080/pic/avatar.png"
                     : `http://localhost:8080/pic/${contentDetails.avatar}`
                 }
               />

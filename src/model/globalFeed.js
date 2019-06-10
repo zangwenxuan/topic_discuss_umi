@@ -9,6 +9,9 @@ export default {
         type: "changeStatus",
         payload: res
       });
+      yield put({
+        type: "user/getCurrentUser"
+      })
     },
     *cancelFollow({ payload }, { call, put }) {
       const res = yield call(
@@ -21,6 +24,9 @@ export default {
         type: "changeStatus",
         payload: res
       });
+      yield put({
+        type: "user/getCurrentUser"
+      })
     },
     *queryUser({ payload }, { call, put }) {
       const res = yield call(
@@ -39,7 +45,7 @@ export default {
       return { ...state, ...payload };
     },
     changeStatus(state, { payload }) {
-      return { ...state, isFollowed: payload };
+      return { ...state, followed: payload };
     }
   }
 };

@@ -1,4 +1,5 @@
 import request from "../../../utils/requests";
+import {message} from "antd"
 export default {
   namespace: "userManager",
   state: {},
@@ -26,6 +27,7 @@ export default {
       }
     },
     deleteFromUserList(state,{payload}){
+      message.success("删除成功！")
       return{
         ...state,
         userList: state.userList.filter(u=>u.uid!==payload)

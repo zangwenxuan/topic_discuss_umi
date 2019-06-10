@@ -16,7 +16,7 @@ class PicturesWall extends React.Component {
       previewImage: file.url || file.thumbUrl,
       previewVisible: true
     });
-  }
+  };
 
   clear = () => {
     this.setState({

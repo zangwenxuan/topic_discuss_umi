@@ -1,9 +1,10 @@
 import React, { Component } from "react";
-import { Table, Input, Button, Icon } from "antd";
+import { Table, Input, Button, Icon, Popconfirm, Divider } from "antd";
 import Highlighter from "react-highlight-words";
 import { connect } from "dva";
 import moment from "moment";
 import "moment/locale/zh-cn";
+import Link from "umi/link";
 
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
@@ -61,17 +62,17 @@ class FeedManager extends Component {
     filterIcon: filtered => (
       <Icon type="search" style={{ color: filtered ? "#1890ff" : undefined }} />
     ),
-    onFilter: (value, record) =>{
-      if(dataIndex === "releaseTime"){
+    onFilter: (value, record) => {
+      if (dataIndex === "releaseTime") {
         return moment(record[dataIndex])
           .format(dateFormat)
           .toString()
           .includes(value);
       }
-       return record[dataIndex]
+      return record[dataIndex]
         .toString()
         .toLowerCase()
-        .includes(value.toLowerCase())
+        .includes(value.toLowerCase());
     },
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
@@ -83,7 +84,13 @@ class FeedManager extends Component {
         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
         searchWords={[this.state.searchText]}
         autoEscape
-        textToHighlight={dataIndex === "releaseTime"?moment(text).format(dateFormat).toString():text.toString()}
+        textToHighlight={
+          dataIndex === "releaseTime"
+            ? moment(text)
+                .format(dateFormat)
+                .toString()
+            : text.toString()
+        }
       />
     )
   });
@@ -97,6 +104,14 @@ class FeedManager extends Component {
     clearFilters();
     this.setState({ searchText: "" });
   };
+  deleteFeed = feedId => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: "feedManager/deleteFeed",
+      payload: { feedId }
+    });
+  };
+
   render() {
     const {
       feedManager: { feedList = [] }
@@ -128,35 +143,51 @@ class FeedManager extends Component {
         title: "收藏数",
         dataIndex: "keepNum",
         key: "keepNum",
-        width: "12%",
+        width: "10%",
         sorter: (a, b) => a.keepNum - b.keepNum
       },
       {
         title: "点赞数",
         dataIndex: "likeNum",
         key: "likeNum",
-        width: "12%",
+        width: "10%",
         sorter: (a, b) => a.likeNum - b.likeNum
       },
       {
         title: "评论数",
         dataIndex: "commentNum",
         key: "commentNum",
-        width: "12%",
+        width: "10%",
         sorter: (a, b) => a.commentNum - b.commentNum
       },
       {
-        title: 'Action',
-        key: 'action',
-        render: () => <a href="javascript:;">Delete</a>,
-      },
+        title: "Action",
+        key: "action",
+        render: record => (
+          <div>
+            <Link to={`/details/${record.feedId}`}>查看</Link>丨
+            <Popconfirm
+              onConfirm={() => this.deleteFeed(record.feedId)}
+              title={"是否确认删除？"}
+              okText={"确定"}
+              cancelText={"取消"}
+            >
+              <a href="javascript:;">删除</a>
+            </Popconfirm>
+          </div>
+        )
+      }
     ];
     return (
-      <Table
-        style={{ border: "1px solid #3933333d", backgroundColor: "#fff" }}
-        columns={columns}
-        dataSource={feedList}
-      />
+      <div>
+        <Divider orientation="left">当前帖子数量：{feedList.length}</Divider>
+        <Table
+          rowKey={record => record.feedId}
+          style={{ border: "1px solid #3933333d", backgroundColor: "#fff" }}
+          columns={columns}
+          dataSource={feedList}
+        />
+      </div>
     );
   }
 }

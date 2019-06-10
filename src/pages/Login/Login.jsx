@@ -48,7 +48,7 @@ class Login extends Component {
     const { getFieldDecorator } = this.props.form;
     const { user, submitting } = this.props;
     const form = (
-      <Form onSubmit={this.handleSubmit} className="login-form">
+      <Form onSubmit={this.handleSubmit} className="login-form" >
         {user.status === "error" && !submitting && this.renderMessage()}
         <Form.Item>
           {getFieldDecorator("userName", {
@@ -74,7 +74,7 @@ class Login extends Component {
           )}
         </Form.Item>
         <Form.Item>
-          <a>忘记密码</a>
+          {/*<a>忘记密码</a>*/}
           <Link to="/register" className={styles.login_forgot}>
             注册账号
           </Link>
@@ -91,7 +91,7 @@ class Login extends Component {
         </Form.Item>
       </Form>
     );
-    return <div className={styles.main}>{form}</div>;
+    return <div className={styles.main}><div style={{height:200}}/><div style={{padding:10,backgroundColor:"#fff"}}><p style={{ textAlign: "center", fontSize: "30px" }}>登录</p>{form}</div></div>;
   }
 }
 const LoginForm = Form.create({ name: "normal_login" })(Login);

@@ -16,8 +16,36 @@ export default {
     showFeedList(state, { payload }) {
       return {
         ...state,
-        ...payload
+        feedList: payload
       };
-    }
+    },
+    updateFeedLike(state, { payload }) {
+      let { feedList } = state;
+      feedList = feedList && feedList.map(f => {
+        if (f.feedId === payload) {
+          f.likeNum = f.like ? f.likeNum - 1 : f.likeNum + 1;
+          f.like = !f.like;
+        }
+        return f;
+      });
+      return{
+        ...state,
+        feedList
+      };
+    },
+    updateFeedKeep(state, { payload }) {
+      let { feedList } = state;
+      feedList = feedList && feedList.map(f => {
+        if (f.feedId === payload) {
+          f.keepNum = f.keep ? f.keepNum - 1 : f.keepNum + 1;
+          f.keep = !f.keep;
+        }
+        return f;
+      });
+      return{
+        ...state,
+        feedList
+      };
+    },
   }
 };

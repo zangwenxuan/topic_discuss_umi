@@ -79,7 +79,7 @@ export default class CommentList extends Component {
           <Avatar
             src={
               record.avatar == null
-                ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                ? "http://localhost:8080/pic/avatar.png"
                 : `http://localhost:8080/pic/${record.avatar}`
             }
           />
@@ -108,7 +108,7 @@ export default class CommentList extends Component {
             <Avatar
               src={
                 item.avatar == null
-                  ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                  ? "http://localhost:8080/pic/avatar.png"
                   : `http://localhost:8080/pic/${item.avatar}`
               }
             />

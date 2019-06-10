@@ -135,7 +135,7 @@ class UserList extends Component {
                           size={50}
                           src={
                             item.avatar == null
-                              ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                              ? "http://localhost:8080/pic/avatar.png"
                               : `http://localhost:8080/pic/${item.avatar}`
                           }
                         />

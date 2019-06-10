@@ -13,7 +13,7 @@ export default function chatBubble({ message, avatar, isSelf, lastMessage, time 
       {time - lastMessage > 300000 && <div className={styles.time}><span className={styles.time}>{moment(time).format(dateFormat)}</span></div>}
       <Avatar src={
         avatar == null
-          ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+          ? "http://localhost:8080/pic/avatar.png"
           : `http://localhost:8080/pic/${avatar}`
       } className={styles.avatar} />
       <div className={styles.triangle} />

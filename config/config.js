@@ -86,7 +86,6 @@ export default {
         { path: "/setpassword", component: "SetPassword/SetPassword" },
         { path: "/bindmail", component: "BindMail/BindMail" },
         { path: "/test", component: "test" },
-        { path: "/search", component: "Search/Search" },
         { component: "./Exception/404" }
       ]
     },

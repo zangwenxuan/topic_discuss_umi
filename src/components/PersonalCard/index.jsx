@@ -17,7 +17,7 @@ const personalCard = ({
   followingNum,
   feedNum,
   cardLoading,
-  isFollowed,
+  followed,
   newFollow,
   cancelFollow
 }) => {
@@ -26,7 +26,7 @@ const personalCard = ({
     <Button
       disabled={isSelf}
       type="primary"
-      onClick={newFollow.bind(this, { master: uid || authorId })}
+      onClick={() => newFollow({ master: uid || authorId })}
     >
       关注
     </Button>
@@ -57,7 +57,7 @@ const personalCard = ({
           }
           bordered={false}
           actions={[
-            isFollowed ? buttonFalse : buttonTrue,
+            followed ? buttonFalse : buttonTrue,
             <Link to={`/chat/${uid || authorId}`}>
               <Button disabled={isSelf}>私信</Button>
             </Link>

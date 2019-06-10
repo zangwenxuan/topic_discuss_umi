@@ -8,7 +8,8 @@ import {
   Tag,
   Tooltip,
   Spin,
-  Skeleton
+  Skeleton,
+  Popconfirm
 } from "antd";
 import styles from "./index.less";
 import Zmage from "../../components/ContentImgs";
@@ -30,20 +31,16 @@ moment.locale("zh-cn");
 @connect(({ user, globalFeed, loading }) => ({
   user,
   globalFeed,
-  cardLoading: loading.effects["globalFeed/queryUser"]
+  cardLoading: loading.effects["globalFeed/queryUser"],
+  likeLoading: loading.effects["feeds/like"],
+  keepLoading: loading.effects["feeds/keep"]
 }))
 class FeedList extends React.Component {
   state = {
-    dataSource: [],
     visible: false,
     feedId: "",
     commentValue: "",
     themeName: "",
-    keepList: [],
-    likeList: [],
-    keepNum: [],
-    likeNum: [],
-    messageNum: [],
     showPage: true
   };
 
@@ -54,78 +51,49 @@ class FeedList extends React.Component {
     tagPop: () => {}
   };
 
-  componentDidMount() {
-    const { feed } = this.props;
-    this.setState({
-      ...feed
-    });
-  }
-
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return !(nextProps === this.props && nextState === this.state);
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (!!this.props.feed && prevProps.feed !== this.props.feed) {
-      const {
-        keepNum,
-        keepList,
-        likeNum,
-        likeList,
-        messageNum
-      } = this.props.feed;
-      this.setState({
-        keepNum,
-        keepList,
-        likeList,
-        likeNum,
-        messageNum
-      });
-    }
-  }
-
   IconText = ({ type, text, value, onClick, feedId }) => {
-    const { likeList, keepList, likeNum, keepNum, messageNum } = this.state;
+    const {
+      feed: { feedList = [] },
+      likeLoading,
+      keepLoading
+    } = this.props;
     let status = false;
     let num = "";
+    let loading = false;
     if (type === "like-o") {
-      status =
-        JSON.stringify(likeList) !== "[]"
-          ? likeList.some(l => l.feedId === feedId && l.isLiked)
-          : false;
-      JSON.stringify(likeNum) !== "[]"
-        ? likeNum.forEach(l => {
-            if (l.feedId === feedId) num = l.num;
-          })
-        : "";
+      loading = !!likeLoading;
+      status = feedList.some(l => l.feedId === feedId && l.like);
+      feedList.forEach(l => {
+        if (l.feedId === feedId) num = l.likeNum;
+      });
     } else if (type === "star-o") {
-      status =
-        JSON.stringify(keepList) !== "[]"
-          ? keepList.some(k => k.feedId === feedId && k.isKeep)
-          : false;
-      JSON.stringify(keepNum) !== "[]"
-        ? keepNum.forEach(l => {
-            if (l.feedId === feedId) num = l.num;
-          })
-        : "";
+      loading = !!keepLoading;
+      status = feedList.some(l => l.feedId === feedId && l.keep);
+      feedList.forEach(l => {
+        if (l.feedId === feedId) num = l.keepNum;
+      });
     } else {
-      JSON.stringify(messageNum) !== "[]"
-        ? messageNum.forEach(l => {
-            if (l.feedId === feedId) num = l.num;
-          })
-        : (num = "");
+      feedList.forEach(l => {
+        if (l.feedId === feedId) num = l.commentNum;
+      });
     }
     return (
-      <span onClick={onClick}>
-        <Tooltip title={status !== true ? value : `取消${value}`}>
-          <Icon
-            type={type}
-            theme={status === true ? "filled" : "outlined"}
-            style={{ marginRight: 8 }}
-          />
-        </Tooltip>
-        {num}
-      </span>
+      <Spin spinning={loading}>
+        <span onClick={onClick}>
+          <Tooltip title={status !== true ? value : `取消${value}`}>
+            <Icon
+              type={type}
+              theme={status === true ? "filled" : "outlined"}
+              style={{ marginRight: 8 }}
+            />
+          </Tooltip>
+          {num}
+        </span>
+      </Spin>
     );
   };
 
@@ -138,50 +106,21 @@ class FeedList extends React.Component {
   };
 
   showLogin = () => {
-    const {dispatch} = this.props
+    const { dispatch } = this.props;
     dispatch({
       type: "user/showLoginModal"
-    })
+    });
   };
 
   handleLikeChange = feedId => {
     if (!sessionStorage.getItem("isLogin")) {
       this.showLogin();
-      return
+      return;
     }
-    const { dispatch } = this.props;
-    const { likeList, likeNum } = this.state;
-    let list = likeList;
-    let num = likeNum;
-    if (!likeList.map(l => l.feedId).some(f => f === feedId)) {
-      list.push({ feedId, isLiked: true });
-      num = likeNum.map(l => {
-        if (l.feedId === feedId) {
-          return { feedId, num: l.num + 1 };
-        } else return l;
-      });
-    } else {
-      let isLiked = false;
-      list = likeList.map(l => {
-        if (l.feedId === feedId) {
-          isLiked = l.isLiked;
-          return { feedId, isLiked: !l.isLiked };
-        }
-        return l;
-      });
-      num = likeNum.map(l => {
-        if (l.feedId === feedId) {
-          return { feedId, num: isLiked ? l.num - 1 : l.num + 1 };
-        }
-        return l;
-      });
-    }
-    this.setState({
-      likeNum: num,
-      likeList: list
-    });
+    const { dispatch, likeLoading } = this.props;
+    if (likeLoading) return;
     dispatch({
-      type: "feed/like",
+      type: "feeds/like",
       payload: { feedId }
     });
   };
@@ -191,39 +130,10 @@ class FeedList extends React.Component {
       this.showLogin();
       return;
     }
-    const { dispatch } = this.props;
-    const { keepList, keepNum } = this.state;
-    let list = keepList;
-    let num = keepNum;
-    if (!keepList.map(l => l.feedId).some(f => f == feedId)) {
-      list.push({ feedId, isKeep: true });
-      num = keepNum.map(l => {
-        if (l.feedId == feedId) {
-          return { feedId, num: l.num + 1 };
-        } else return l;
-      });
-    } else {
-      let isKeep = true;
-      list = keepList.map(l => {
-        if (l.feedId == feedId) {
-          isKeep = l.isKeep;
-          return { feedId, isKeep: !isKeep };
-        }
-        return l;
-      });
-      num = keepNum.map(l => {
-        if (l.feedId == feedId) {
-          return { feedId, num: isKeep ? l.num - 1 : l.num + 1 };
-        }
-        return l;
-      });
-    }
-    this.setState({
-      keepNum: num,
-      keepList: list
-    });
+    const { dispatch, keepLoading } = this.props;
+    if (keepLoading) return;
     dispatch({
-      type: "feed/keep",
+      type: "feeds/keep",
       payload: { feedId }
     });
   };
@@ -351,7 +261,9 @@ class FeedList extends React.Component {
       if (!keep) {
         return (
           <Tooltip title={"删除"}>
-            <Icon type={"close"} onClick={() => onCloseClick(item)} />
+            <Popconfirm onConfirm={() => onCloseClick(item)} title={"是否确认删除？"} okText={"确认"} cancelText={"取消"}>
+            <a href={"#"} ><Icon type={"close"} /></a>
+            </Popconfirm>
           </Tooltip>
         );
       } else {
@@ -409,7 +321,7 @@ class FeedList extends React.Component {
       user: { currentUser = {} },
       showPage
     } = this.props;
-    const { contentList = [] } = feed;
+    const { feedList = [] } = feed;
     const popProps = {
       currentUid: currentUser.uid,
       ...globalFeed,
@@ -419,7 +331,7 @@ class FeedList extends React.Component {
     };
     const { visible, feedId } = this.state;
     let listClass;
-    contentList.length !== 0
+    feedList.length !== 0
       ? (listClass = classNames(styles.list))
       : (listClass = classNames(styles.nullList));
     return (
@@ -437,7 +349,7 @@ class FeedList extends React.Component {
               hideOnSinglePage: true
             }
           }
-          dataSource={contentList}
+          dataSource={feedList}
           renderItem={item => (
             <div>
               <List.Item
@@ -490,7 +402,7 @@ class FeedList extends React.Component {
                             size={40}
                             src={
                               item.avatar == null
-                                ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                                ? "http://localhost:8080/pic/avatar.png "
                                 : `http://localhost:8080/pic/${item.avatar}`
                             }
                           />
@@ -506,7 +418,10 @@ class FeedList extends React.Component {
                     }
                     description={this.showTags(item)}
                   />
-                  <Link className={styles.linkContent} to={`/details/${item.feedId}`}>
+                  <Link
+                    className={styles.linkContent}
+                    to={`/details/${item.feedId}`}
+                  >
                     <div color="black" size="4" style={{ marginLeft: "50px" }}>
                       <div
                         className="braft-output-content"

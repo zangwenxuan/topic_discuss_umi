@@ -66,7 +66,7 @@ class EditorFeed extends Component {
       themeList: tagList
     };
     dispatch({
-      type: "feed/submit",
+      type: "feeds/submitFeed",
       payload
     });
     this.setState({

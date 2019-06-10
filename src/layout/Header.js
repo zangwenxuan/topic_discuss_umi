@@ -385,7 +385,7 @@ class HeaderPanel extends Component {
                   title="通知"
                   emptyText="没有最新消息"
                   emptyImage="https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg"
-                  showViewMore
+                  showViewMore={false}
                 />
                 <NoticeIcon.Tab
                   clearLoading={this.props.chatNoticeClear}
@@ -410,7 +410,7 @@ class HeaderPanel extends Component {
                     alt="avatar"
                     src={
                       avatar == null
-                        ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
+                        ? "http://localhost:8080/pic/avatar.png "
                         : `http://localhost:8080/pic/${avatar}`
                     }
                   />

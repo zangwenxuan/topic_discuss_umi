@@ -76,7 +76,7 @@ class LoginForm extends Component {
             )}
           </Form.Item>
           <Form.Item>
-            <a>忘记密码</a>
+            {/*<a>忘记密码</a>*/}
             <Link to="/register" className={styles.login_forgot}>
               注册账号
             </Link>

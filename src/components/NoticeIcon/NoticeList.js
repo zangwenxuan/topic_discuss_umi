@@ -6,6 +6,8 @@ import classNames from "classnames";
 import styles from "./NoticeList.less";
 import moment from "moment";
 import "moment/locale/zh-cn";
+import BraftEditor from "braft-editor";
+import "braft-editor/dist/output.css";
 
 const dateFormat = "YYYY-MM-DD HH:mm:ss";
 moment.locale("zh-cn");
@@ -13,21 +15,21 @@ moment.locale("zh-cn");
 function checkType(type) {
   switch (type) {
     case 0:
-      return " 点赞了你的帖子";
+      return " ";
     case 1:
-      return " 收藏了你的帖子";
+      return " ";
     case 2:
       return " 回复了你的评论";
     case 3:
       return " 评论了你的帖子";
     case 4:
-      return " 关注了你";
+      return " ";
     case -1:
-      return " 取消了对你的帖子的点赞";
+      return " ";
     case -2:
-      return " 取消了对你的帖子的收藏";
+      return " ";
     case -3:
-      return " 取消了对你的关注";
+      return " ";
     case 10:
       return " ";
     default:
@@ -45,7 +47,22 @@ function LinkContent({ item, onItemClick }) {
       </Link>
     );
   }
-  if (item.type !== 4 && item !== -3) {
+  if(item.type === -2 || item.type === -1 || item.type === 0 || item.type === 1){
+    const noticeContent = [
+      " 取消了对你的帖子的收藏",
+      " 取消了对你的帖子的点赞",
+      " 点赞了你的帖子",
+      " 收藏了你的帖子"
+    ];
+    return (
+      <Link to={`/details/${item.feedId}`}>
+        <div className={styles.description} /* title={item.content}*/>
+          {noticeContent[item.type + 2]}
+        </div>
+      </Link>
+    );
+  }
+  if (item.type === 2 || item.type === 3) {
     return (
       <Link to={`/details/${item.feedId}`} onClick={() => onItemClick(item)}>
         <div className={styles.description} title={item.content}>
@@ -54,11 +71,28 @@ function LinkContent({ item, onItemClick }) {
       </Link>
     );
   }
-  return (
-    <div className={styles.description} /* title={item.content}*/>
-      <Ellipsis length={30}>{item.content}</Ellipsis>
-    </div>
-  );
+  if (item.type === -3 || item.type === 4) {
+    return (
+      <div className={styles.description} /* title={item.content}*/>
+        {item.type === 4 ? "关注了你！" : "取消了对你的关注！"}
+      </div>
+    );
+  }
+    return (
+      <Link to={`/details/${item.feedId}`} onClick={() => onItemClick(item)}>
+        {/*<div className={styles.description} title={item.content}>
+          <Ellipsis length={15}>{item.content}</Ellipsis>
+        </div>*/}
+        <div
+          className="braft-output-content"
+          dangerouslySetInnerHTML={{
+            __html: BraftEditor.createEditorState(
+              JSON.parse(item.content)
+            ).toHTML()
+          }}
+        />
+      </Link>
+    );
 }
 export default function NoticeList({
   data = [],
@@ -103,21 +137,25 @@ export default function NoticeList({
             });
             // eslint-disable-next-line no-nested-ternary
             //此处为用户的头像
-            const leftIcon = /*item.avatar ? (
-              typeof item.avatar === "string" ?*/ (
-                <Badge count={item.type === 10 ? item.count : 0}>
-                  {" "}
-                  <Avatar
-                    className={styles.avatar}
-                    src={item.avatar == null
+            const leftIcon = (
+              /*item.avatar ? (
+              typeof item.avatar === "string" ?*/ <Badge
+                count={item.type === 10 ? item.count : 0}
+              >
+                {" "}
+                <Avatar
+                  className={styles.avatar}
+                  src={
+                    item.avatar == null
                       ? "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png "
-                      : `http://localhost:8080/pic/${item.avatar}`}
-                  />
-                </Badge>
-              ) /*: (
+                      : `http://localhost:8080/pic/${item.avatar}`
+                  }
+                />
+              </Badge>
+            ); /*: (
                 <span className={styles.iconElement}>{item.avatar}</span>
               )
-            ) : null*/;
+            ) : null*/
 
             return (
               <List.Item
@@ -135,7 +173,10 @@ export default function NoticeList({
                       <div className={styles.extra}>
                         {/*{item.extra}*/}
                         {item.type === 10 && (
-                          <Icon onClick={()=>onCloseClick(item.uid)} type="close" />
+                          <Icon
+                            onClick={() => onCloseClick(item.uid)}
+                            type="close"
+                          />
                         )}
                       </div>
                     </div>
@@ -171,7 +212,7 @@ export default function NoticeList({
           </div>
         ) : null}
         {showViewMore ? (
-          <div onClick={()=>onViewMore(title)}>
+          <div onClick={() => onViewMore(title)}>
             {title === "私信" ? "清空" : "更多"}
           </div>
         ) : null}

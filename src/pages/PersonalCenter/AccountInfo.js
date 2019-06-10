@@ -227,7 +227,7 @@ class Info extends Component {
                   {isSelf && (
                     <a
                       onClick={this.showCoverModal}
-                      style={{ color: "#fff" }}
+                      style={{ color: "#fff" ,fontSize: "30px"}}
                       className={styles.span}
                     >
                       更换封面

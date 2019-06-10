@@ -23,7 +23,7 @@ export default {
       }
       yield put({
         type: "addFeedList",
-        payload: { ...res, tab: "index" }
+        payload: { feedList: res, tab: "index" }
       });
     },
     *selectSubscribe(_, { call, put, select }) {
@@ -47,7 +47,7 @@ export default {
       }
       yield put({
         type: "addFeedList",
-        payload: { ...res, tab: "subscribe" }
+        payload: { feedList: res, tab: "subscribe" }
       });
     },
     *selectByTheme({ payload }, { call, put, select }) {
@@ -71,33 +71,83 @@ export default {
       }
       yield put({
         type: "addFeedList",
-        payload: { ...res, tab: payload }
+        payload: { feedList: res, tab: payload }
       });
     },
-    *selectHotTheme(_,{call,put}){
-      const res = yield call(request.fetch,"get","feed/selectHotTheme")
+    *selectHotTheme(_, { call, put }) {
+      const res = yield call(request.fetch, "get", "feed/selectHotTheme");
       yield put({
         type: "updateHotTheme",
         payload: res
-      })
+      });
     },
-    *searchTheme({payload},{call,put}){
-      const res = yield call(request.fetch,"get",`feed/searchTheme?theme=${payload}`)
-      console.log(res)
+    *searchTheme({ payload }, { call, put }) {
+      const res = yield call(
+        request.fetch,
+        "get",
+        `feed/searchTheme?theme=${payload}`
+      );
+      console.log(res);
       yield put({
         type: "updateSearchTheme",
         payload: res
-      })
+      });
     },
-    *searchUser({payload},{call,put}){
-      const res = yield call(request.fetch,"get",`feed/searchUser?nickname=${payload}`)
+    *searchUser({ payload }, { call, put }) {
+      const res = yield call(
+        request.fetch,
+        "get",
+        `feed/searchUser?nickname=${payload}`
+      );
       yield put({
         type: "updateSearchUser",
         payload: res
-      })
+      });
     },
     *submitFeed({ payload }, { call, put }) {
-      const res = yield call(request.fetch, "post", "/content/sendFeed", payload);
+      const res = yield call(
+        request.fetch,
+        "post",
+        "/content/sendFeed",
+        payload
+      );
+      yield put({
+        type: "addFeed",
+        payload: res
+      });
+      yield put({
+        type: "user/getCurrentUser"
+      });
+    },
+    *like({ payload }, { call, put }) {
+      const res = yield call(request.fetch, "post", "/content/like", payload);
+      yield put({
+        type: "updateFeedLike",
+        payload: res
+      });
+      yield put({
+        type: "personalKeep/updateFeedLike",
+        payload: res
+      });
+      yield put({
+        type: "personalFeed/updateFeedLike",
+        payload: res
+      });
+    },
+    *keep({ payload }, { call, put }) {
+      const res = yield call(request.fetch, "post", "/content/keep", payload);
+      yield put({
+        type: "updateFeedKeep",
+        payload: res
+      });
+      yield put({
+        type: "personalKeep/updateFeedKeep",
+        payload: res
+      });
+      yield put({
+        type: "personalFeed/updateFeedKeep",
+        payload: res
+      });
     }
   },
   reducers: {
@@ -107,71 +157,94 @@ export default {
         ...payload
       };
     },
-    addFeed(state,{payload}){
-
+    addFeed(state, { payload }) {
+      let indexFeed = [payload];
+      return {
+        ...state,
+        index: {
+          ...state.index,
+          feedList: indexFeed.concat(state.index.feedList)
+        }
+      };
     },
     addFeedList(state, { payload }) {
-      const {
-        tab,
-        likeNum,
-        likeList,
-        keepNum,
-        keepList,
-        messageNum,
-        contentList
-      } = payload;
+      const { tab, feedList } = payload;
       let feed = !!state[tab] ? state[tab] : {};
       feed = {
         page: !!feed.page
-          ? contentList.length !== 0
+          ? feedList.length !== 0
             ? feed.page + 1
             : feed.page
           : 1,
-        likeNum: !!feed.likeNum ? feed.likeNum.concat(likeNum) : likeNum,
-        likeList: !!feed.likeList ? feed.likeList.concat(likeList) : likeList,
-        keepNum: !!feed.keepNum ? feed.keepNum.concat(keepNum) : keepNum,
-        keepList: !!feed.keepList ? feed.keepList.concat(keepList) : keepList,
-        messageNum: !!feed.messageNum
-          ? feed.messageNum.concat(messageNum)
-          : messageNum,
-        contentList: !!feed.contentList
-          ? feed.contentList.concat(contentList)
-          : contentList
+        feedList: !!feed.feedList ? feed.feedList.concat(feedList) : feedList
       };
       state[tab] = feed;
       return {
         ...state,
-        noMoreFeed: contentList.length === 0
-        /* page: state.page + 1,
-        likeNum: !!state.likeNum ? state.likeNum.concat(likeNum) : likeNum,
-        likeList: !!state.likeList ? state.likeList.concat(likeList) : likeList,
-        keepNum: !!state.keepNum ? state.keepNum.concat(keepNum) : keepNum,
-        keepList: !!state.keepList ? state.keepList.concat(keepList) : keepList,
-        messageNum: !!state.messageNum
-          ? state.messageNum.concat(messageNum)
-          : messageNum,
-        contentList: !!state.contentList
-          ? state.contentList.concat(contentList)
-          : contentList*/
+        noMoreFeed: feedList.length === 0
       };
     },
-    updateHotTheme(state,{payload}){
+    updateHotTheme(state, { payload }) {
       return {
         ...state,
         hotThemeList: payload
-      }
+      };
     },
-    updateSearchTheme(state,{payload}){
+    updateSearchTheme(state, { payload }) {
       return {
         ...state,
-        searchThemeList:payload
-      }
+        searchThemeList: payload
+      };
     },
-    updateSearchUser(state,{payload}){
+    updateSearchUser(state, { payload }) {
       return {
         ...state,
         searchUserList: payload
-      }
+      };
+    },
+    updateFeedLike(state, { payload }) {
+      let tabList = (
+        JSON.parse(sessionStorage.getItem("tabList")) || []
+      ).concat([
+        { key: "index", title: "index" },
+        { key: "subscribe", title: "subscribe" }
+      ]);
+      tabList.forEach(
+        tab =>
+          state[tab.key] &&
+          (state[tab.key].feedList = state[tab.key].feedList.map(f => {
+            if (f.feedId === payload) {
+              f.likeNum = f.like ? f.likeNum - 1 : f.likeNum + 1;
+              f.like = !f.like;
+            }
+            return f;
+          }))
+      );
+      return {
+        ...state
+      };
+    },
+    updateFeedKeep(state, { payload }) {
+      let tabList = (
+        JSON.parse(sessionStorage.getItem("tabList")) || []
+      ).concat([
+        { key: "index", title: "index" },
+        { key: "subscribe", title: "subscribe" }
+      ]);
+      tabList.forEach(
+        tab =>
+          state[tab.key] &&
+          (state[tab.key].feedList = state[tab.key].feedList.map(f => {
+            if (f.feedId === payload) {
+              f.keepNum = f.keep ? f.keepNum - 1 : f.keepNum + 1;
+              f.keep = !f.keep;
+            }
+            return f;
+          }))
+      );
+      return {
+        ...state
+      };
     }
   }
 };
